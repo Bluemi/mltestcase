@@ -30,7 +30,7 @@ def train(train_dataset, net, optimizer, loss_function, device, save_model=True)
 
             current_loss_sum += loss.item()
             example_counter += 1
-        print(f'epoch {epoch+1}: {current_loss_sum / example_counter}')
+        print(f'Loss {epoch+1}: {current_loss_sum / example_counter}')
 
     if save_model:
         torch.save(net.state_dict(), MODEL_PATH)
