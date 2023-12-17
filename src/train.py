@@ -58,7 +58,8 @@ def main():
 
     # loss_function = nn.CrossEntropyLoss()
     loss_function = nn.MSELoss()
-    optimizer = optim.SGD(net.parameters(), lr=0.02, momentum=0.9)
+    # optimizer = optim.SGD(net.parameters(), lr=0.001, momentum=0.9)
+    optimizer = optim.Adam(net.parameters(), lr=0.0005)
 
     start_time = time.time()
     train(train_dataset, net, optimizer, loss_function, save_model=True, device=device)
