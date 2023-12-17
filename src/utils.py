@@ -15,26 +15,36 @@ def imshow(img):
     plt.show()
 
 
-def load_data(batch_size=4, shuffle=True, num_workers=2):
-    transform = transforms.Compose(
-        [transforms.ToTensor(),
-         transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))])
-    train_dataset = torchvision.datasets.CIFAR10(
-        root=os.path.expanduser('~/data/'), train=True, transform=transform
+def load_data(dataset_name, batch_size=4, shuffle=True, num_workers=2):
+    transform = transforms.Compose([
+        transforms.ToTensor(),
+        # transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
+    ])
+
+    dataset = {
+        'cifar10': torchvision.datasets.CIFAR10,
+        'mnist': torchvision.datasets.MNIST,
+    }[dataset_name]
+
+    train_dataset = dataset(
+        root=os.path.expanduser('~/data/'), download=True, train=True, transform=transform
     )
 
     train_data_loader = torch.utils.data.DataLoader(
         train_dataset, batch_size=batch_size, shuffle=shuffle, num_workers=num_workers
     )
 
-    test_dataset = torchvision.datasets.CIFAR10(
+    test_dataset = dataset(
         root=os.path.expanduser('~/data/'), train=False, transform=transform
     )
     test_data_loader = torch.utils.data.DataLoader(
         test_dataset, batch_size=batch_size, shuffle=shuffle, num_workers=num_workers
     )
 
-    classes = ('plane', 'car', 'bird', 'cat', 'deer', 'dog', 'frog', 'horse', 'ship', 'truck')
+    classes = {
+        'cifar10': ('plane', 'car', 'bird', 'cat', 'deer', 'dog', 'frog', 'horse', 'ship', 'truck'),
+        'mnist': tuple('0123456789')
+    }
     return train_data_loader, test_data_loader, classes
 
 

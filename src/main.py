@@ -3,7 +3,7 @@ import time
 import numpy as np
 from tqdm import tqdm
 
-from model import Net
+from model import Net, DenseNetMnist
 from utils import load_data
 import torch
 import torch.optim as optim
@@ -24,7 +24,7 @@ def train(train_dataset, net, optimizer, loss_function, device, save_model=True)
             optimizer.zero_grad()
 
             outputs = net(inputs)
-            loss = loss_function(outputs, labels)
+            loss = loss_function(outputs, torch.flatten(inputs, start_dim=1))
             loss.backward()
             optimizer.step()
 
@@ -71,11 +71,12 @@ def test_model(test_dataset, net, classes, device):
 
 def main():
     device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
-    train_dataset, test_dataset, classes = load_data(batch_size=BATCH_SIZE, num_workers=2)
-    net = Net()
+    train_dataset, test_dataset, classes = load_data('mnist', batch_size=BATCH_SIZE, num_workers=2)
+    net = DenseNetMnist()
     net.to(device)
 
-    loss_function = nn.CrossEntropyLoss()
+    # loss_function = nn.CrossEntropyLoss()
+    loss_function = nn.MSELoss()
     optimizer = optim.SGD(net.parameters(), lr=0.001, momentum=0.9)
 
     start_time = time.time()
