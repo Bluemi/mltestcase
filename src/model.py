@@ -38,7 +38,7 @@ class DenseNetMnist(nn.Module):
     def forward(self, x):
         x = torch.flatten(x, start_dim=1)
         x = F.relu(self.fc1(x))
-        x = F.relu(self.fc2(x))
+        x = self.fc2(x)
         x = F.relu(self.fc3(x))
-        x = F.relu(self.fc4(x))
+        x = self.fc4(x)
         return x

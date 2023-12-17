@@ -1,6 +1,5 @@
 import time
 
-import numpy as np
 import torchvision
 from tqdm import tqdm
 
@@ -11,8 +10,8 @@ import torch.optim as optim
 from torch import nn
 
 
-BATCH_SIZE = 4
-NUM_EPOCHS = 5
+BATCH_SIZE = 32
+NUM_EPOCHS = 50
 MODEL_PATH = 'models/cifar_net.pth'
 
 
@@ -21,7 +20,8 @@ def train(train_dataset, net, optimizer, loss_function, device, save_model=True)
         current_loss_sum = 0.0
         example_counter = 0
         for data in tqdm(train_dataset, desc=f'Epoch {epoch+1}', ascii=True):
-            inputs, labels = data[0].to(device), data[1].to(device)
+            # inputs, labels = data[0].to(device), data[1].to(device)
+            inputs, labels = data
             optimizer.zero_grad()
 
             outputs = net(inputs)
@@ -58,7 +58,7 @@ def main():
 
     # loss_function = nn.CrossEntropyLoss()
     loss_function = nn.MSELoss()
-    optimizer = optim.SGD(net.parameters(), lr=0.16, momentum=0.9)
+    optimizer = optim.SGD(net.parameters(), lr=0.02, momentum=0.9)
 
     start_time = time.time()
     train(train_dataset, net, optimizer, loss_function, save_model=True, device=device)
