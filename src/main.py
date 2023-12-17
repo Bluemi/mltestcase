@@ -1,7 +1,10 @@
 import time
 
+import numpy as np
+from tqdm import tqdm
+
 from model import Net
-from utils import load_data, imshow
+from utils import load_data
 import torch
 import torch.optim as optim
 from torch import nn
@@ -16,10 +19,8 @@ def train(train_dataset, net, optimizer, loss_function, device, save_model=True)
     for epoch in range(NUM_EPOCHS):
         current_loss_sum = 0.0
         example_counter = 0
-        for i, data in enumerate(train_dataset):
+        for data in tqdm(train_dataset, desc=f'Epoch {epoch+1}', ascii=True):
             inputs, labels = data[0].to(device), data[1].to(device)
-            # inputs = inputs.to('cuda:0')
-            # labels = labels.to('cuda:0')
             optimizer.zero_grad()
 
             outputs = net(inputs)
@@ -29,9 +30,7 @@ def train(train_dataset, net, optimizer, loss_function, device, save_model=True)
 
             current_loss_sum += loss.item()
             example_counter += 1
-        print(f'epoch {epoch}: {current_loss_sum / example_counter}')
-        current_loss_sum = 0.0
-        example_counter = 0
+        print(f'epoch {epoch+1}: {current_loss_sum / example_counter}')
 
     if save_model:
         torch.save(net.state_dict(), MODEL_PATH)
@@ -48,6 +47,7 @@ def test_model(test_dataset, net, classes, device):
     # since we're not training, we don't need to calculate the gradients for our outputs
     with torch.no_grad():
         for data in test_dataset:
+            labels: np.ndarray  # to prevent ide warning
             images, labels = data[0].to(device), data[1].to(device)
             # calculate outputs by running images through the network
             outputs = net(images)
