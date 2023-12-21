@@ -10,50 +10,51 @@ from torch.utils.data import Dataset
 from tqdm import tqdm
 
 
+def get_mean_std(ds_name):
+    return {
+        # 'cifar10':
+        'mnist': (0.1307, 0.3081)
+    }[ds_name]
+
+
+def get_classes(ds_name):
+    return {
+        'cifar10': ('plane', 'car', 'bird', 'cat', 'deer', 'dog', 'frog', 'horse', 'ship', 'truck'),
+        'mnist': tuple('0123456789')
+    }[ds_name]
+
+
 def imshow(img):
     # img = img / 2 + 0.5
-    npimg = img.numpy()
-    npimg = np.minimum(np.maximum(npimg, 0.0), 1.0)
-    plt.imshow(np.transpose(npimg, (1, 2, 0)))
+    np_img = img.numpy()
+    np_img = np.minimum(np.maximum(np_img, 0.0), 1.0)
+    plt.imshow(np.transpose(np_img, (1, 2, 0)))
     plt.show()
 
 
-def load_data(dataset_name, batch_size=4, shuffle=True, num_workers=2, device=None):
+def load_data(dataset_name, train, batch_size=4, shuffle=True, num_workers=2, device=None):
+    ds_mean, ds_std = get_mean_std(dataset_name)
     transform = transforms.Compose([
         transforms.ToTensor(),
-        # transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
+        transforms.Normalize(ds_mean, ds_std)
     ])
 
-    dataset = {
+    dataset_c = {
         'cifar10': torchvision.datasets.CIFAR10,
         'mnist': MnistDataset,
     }[dataset_name]
 
     # train
-    train_dataset = dataset(
-        root=os.path.expanduser('~/data/'), download=False, train=True, transform=transform
+    dataset = dataset_c(
+        root=os.path.expanduser('~/data/'), download=False, train=train, transform=transform
     )
     if device is not None:
-        train_dataset.to_device(device)
-    train_data_loader = torch.utils.data.DataLoader(
-        train_dataset, batch_size=batch_size, shuffle=shuffle, num_workers=num_workers, pin_memory=False
+        dataset.to_device(device)
+    data_loader = torch.utils.data.DataLoader(
+        dataset, batch_size=batch_size, shuffle=shuffle, num_workers=num_workers, pin_memory=False
     )
 
-    # test
-    test_dataset = dataset(
-        root=os.path.expanduser('~/data/'), download=False, train=False, transform=transform
-    )
-    if device is not None:
-        train_dataset.to_device(device)
-    test_data_loader = torch.utils.data.DataLoader(
-        test_dataset, batch_size=batch_size, shuffle=shuffle, num_workers=num_workers, pin_memory=False
-    )
-
-    classes = {
-        'cifar10': ('plane', 'car', 'bird', 'cat', 'deer', 'dog', 'frog', 'horse', 'ship', 'truck'),
-        'mnist': tuple('0123456789')
-    }
-    return train_data_loader, test_data_loader, classes
+    return data_loader
 
 
 class MnistDataset(Dataset):
@@ -63,6 +64,7 @@ class MnistDataset(Dataset):
         )
         self.mnist_data = torch.zeros((len(ds), 1, 28, 28))
         self.mnist_labels = torch.zeros(len(ds))
+        # noinspection PyTypeChecker
         for i, sample in tqdm(enumerate(ds), desc="loading mnist", total=len(ds)):
             self.mnist_data[i] = sample[0]
             self.mnist_labels[i] = sample[1]

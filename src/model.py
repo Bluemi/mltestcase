@@ -1,6 +1,6 @@
 import torch
 import torch.nn as nn
-import torch.nn.functional as F
+import torch.nn.functional as functional
 
 
 class Net(nn.Module):
@@ -16,13 +16,13 @@ class Net(nn.Module):
         self.fc3 = nn.Linear(84, 10)
 
     def forward(self, x):
-        x = F.relu(self.conv1(x))
-        x = F.relu(self.conv2(x))
+        x = functional.relu(self.conv1(x))
+        x = functional.relu(self.conv2(x))
         x = self.pool1(x)
-        x = self.pool2(F.relu(self.conv3(x)))
+        x = self.pool2(functional.relu(self.conv3(x)))
         x = torch.flatten(x, 1)
-        x = F.relu(self.fc1(x))
-        x = F.relu(self.fc2(x))
+        x = functional.relu(self.fc1(x))
+        x = functional.relu(self.fc2(x))
         x = self.fc3(x)
         return x
 
@@ -30,21 +30,21 @@ class Net(nn.Module):
 class DenseNetMnist(nn.Module):
     def __init__(self):
         bottleneck = 2
-        middle = 256
+        middle = 100
         super().__init__()
         self.fc1 = nn.Linear(28 * 28, middle)
-        self.fc1b = nn.Linear(middle, middle)
+        # self.fc1b = nn.Linear(middle, middle)
         self.fc2 = nn.Linear(middle, bottleneck)
         self.fc3 = nn.Linear(bottleneck, middle)
-        self.fc3b = nn.Linear(middle, middle)
+        # self.fc3b = nn.Linear(middle, middle)
         self.fc4 = nn.Linear(middle, 28 * 28)
 
     def forward(self, x):
         x = torch.flatten(x, start_dim=1)
-        x = F.elu(self.fc1(x))
-        x = F.elu(self.fc1b(x))
+        x = functional.elu(self.fc1(x))
+        # x = F.elu(self.fc1b(x))
         x = self.fc2(x)
-        x = F.elu(self.fc3(x))
-        x = F.elu(self.fc3b(x))
+        x = functional.elu(self.fc3(x))
+        # x = F.elu(self.fc3b(x))
         x = self.fc4(x)
         return x
