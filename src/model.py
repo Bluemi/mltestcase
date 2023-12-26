@@ -33,18 +33,14 @@ class DenseNetMnist(nn.Module):
         middle = 100
         super().__init__()
         self.fc1 = nn.Linear(28 * 28, middle)
-        # self.fc1b = nn.Linear(middle, middle)
         self.fc2 = nn.Linear(middle, bottleneck)
         self.fc3 = nn.Linear(bottleneck, middle)
-        # self.fc3b = nn.Linear(middle, middle)
         self.fc4 = nn.Linear(middle, 28 * 28)
 
     def forward(self, x):
         x = torch.flatten(x, start_dim=1)
         x = functional.elu(self.fc1(x))
-        # x = F.elu(self.fc1b(x))
         x = self.fc2(x)
         x = functional.elu(self.fc3(x))
-        # x = F.elu(self.fc3b(x))
         x = self.fc4(x)
         return x

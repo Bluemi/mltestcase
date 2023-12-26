@@ -46,7 +46,7 @@ def load_data(dataset_name, train, batch_size=4, shuffle=True, num_workers=2, de
 
     # train
     dataset = dataset_c(
-        root=os.path.expanduser('~/data/'), download=False, train=train, transform=transform
+        root=os.path.expanduser('~/misc/data/'), download=False, train=train, transform=transform
     )
     if device is not None:
         dataset.to_device(device)
