@@ -14,8 +14,9 @@ from torch import nn
 
 BATCH_SIZE = 512
 NUM_EPOCHS = 200
-MODEL_PATH = 'models/cifar_net.pth'
-LEARNING_RATES = [0.2, 0.1, 0.05, 0.02, 0.01, 0.005, 0.002, 0.001]
+MODEL_PATH = 'models/mnist_autoencoder.pth'
+# LEARNING_RATES = [0.2, 0.1, 0.05, 0.02, 0.01, 0.005, 0.002, 0.001]
+LEARNING_RATES = [0.02]
 
 
 def train(train_dataset, net, optimizer, loss_function, lr_scheduler, save_model=True):
@@ -70,7 +71,7 @@ def main():
         loss_function = nn.MSELoss()
         optimizer = optim.AdamW(net.parameters(), lr=lr)
         lr_scheduler = CosineAnnealingLR(optimizer, NUM_EPOCHS, 0.0002)
-        last_loss = train(train_dataset, net, optimizer, loss_function, lr_scheduler, save_model=False)
+        last_loss = train(train_dataset, net, optimizer, loss_function, lr_scheduler, save_model=True)
         print('lr={} gives loss={}'.format(lr, last_loss))
     print(f'training took {time.time() - start_time} seconds.')
 
