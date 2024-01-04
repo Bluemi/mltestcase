@@ -1,2 +1,2 @@
-# autoencoders
-Test project for autoencoders on
+# Machine Learning Testcase
+Test project for AutoEncoders, CNNs and other stuff on small datasets (mnist, cifar10).
