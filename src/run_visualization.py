@@ -11,7 +11,7 @@ def main():
     model.load_state_dict(torch.load(MODEL_PATH))
 
     dataset = load_data('mnist', train=False, batch_size=8, num_workers=0, use_dataloader=False)
-    samples = get_examples(dataset, len(get_classes('mnist')), n=10)
+    samples = get_examples(dataset, len(get_classes('mnist')), n=250)
 
     window = Vec2Img(model, samples)
     window.run()

@@ -181,15 +181,22 @@ class CoordinateSystem:
         self.inverse_coord = np.linalg.pinv(self.coord)
 
 
-def tensor_to_pg_img(image: torch.Tensor):
+def tensor_to_pg_img(image: torch.Tensor, alpha_threshold=0):
     image = np.swapaxes((image * 255).numpy(), 1, 2)
     image = image.astype(np.uint8)
     image = np.moveaxis(image, 0, 2)
 
+    alpha_mask = (image > alpha_threshold).astype(np.uint8) * 255
     if image.shape[-1] == 1:
         image = np.repeat(image, 3, axis=-1).reshape(*image.shape[:2], 3)
 
-    return pg.surfarray.make_surface(image)
+    surface = pg.surfarray.make_surface(image)
+    surface = surface.convert_alpha()
+
+    alpha_pixels = pg.surfarray.pixels_alpha(surface)
+    alpha_pixels[:] = alpha_mask.reshape(alpha_mask.shape[:2])
+
+    return surface
 
 
 class Vec2Img(InteractiveVisualization):
@@ -224,7 +231,7 @@ class Vec2Img(InteractiveVisualization):
 
     def calc_images(self):
         with torch.no_grad():
-            images = [tensor_to_pg_img(i) for i in self.samples[0]]
+            images = [tensor_to_pg_img(i, 128) for i in self.samples[0]]
         return images
 
     def tick(self, delta_time):

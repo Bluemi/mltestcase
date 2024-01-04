@@ -30,7 +30,7 @@ class MnistClassification(nn.Module):
 class MnistAutoencoder(nn.Module):
     def __init__(self):
         bottleneck = 2
-        middle = 100
+        middle = 20
         super().__init__()
         self.fc1 = nn.Linear(28 * 28, middle)
         self.fc2 = nn.Linear(middle, bottleneck)
