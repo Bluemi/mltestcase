@@ -126,21 +126,25 @@ class CoordinateSystem:
         screen_size = to_np_array(screen_size)
         coord = create_affine_transformation(screen_size/2, (100, -100))
         self.coord: np.ndarray = coord
+        self.inverse_coord: np.ndarray = np.linalg.pinv(self.coord)
 
     def zoom_out(self):
         scale = 1 / 1.2
         scale_mat = create_affine_transformation(scale=scale)
         self.coord = self.coord @ scale_mat
+        self.update_inv()
 
     def zoom_in(self):
         scale = 1.2
         scale_mat = create_affine_transformation(scale=scale)
         self.coord = self.coord @ scale_mat
+        self.update_inv()
 
     def translate(self, direction):
         direction *= np.array([1, -1])
         translation_mat = create_affine_transformation(translation=direction / self.coord[0, 0])
         self.coord = self.coord @ translation_mat
+        self.update_inv()
 
     def get_zero_screen_point(self):
         """
@@ -164,14 +168,17 @@ class CoordinateSystem:
         mat = to_np_array(mat)
         if mat.shape == (2,):
             mat = mat.reshape(2, 1)
-        inv = np.linalg.pinv(self.coord)
-        return transform(inv, mat)
+        return transform(self.inverse_coord, mat)
+
+    def update_inv(self):
+        self.inverse_coord = np.linalg.pinv(self.coord)
 
 
 class Vec2Img(InteractiveVisualization):
     def __init__(self, screen_size: None | Tuple[int, int] = None, framerate: int = 60):
         super().__init__(screen_size=screen_size, framerate=framerate)
         self.coordinate_system = CoordinateSystem(self.screen.get_size())
+        self.dragging = False
 
     def tick(self, delta_time):
         pass
@@ -182,9 +189,13 @@ class Vec2Img(InteractiveVisualization):
     def handle_event(self, event: pg.event.Event):
         super().handle_event(event)
         if event.type == pg.MOUSEBUTTONDOWN:
-            space = self.coordinate_system.screen_to_space(event.pos)
-            print('screen={} space={}'.format(event.pos, space.flatten()))
-        if event.type == pg.MOUSEWHEEL:
+            self.dragging = True
+        elif event.type == pg.MOUSEBUTTONUP:
+            self.dragging = False
+        elif event.type == pg.MOUSEMOTION:
+            if self.dragging:
+                self.coordinate_system.translate(np.array(event.rel))
+        elif event.type == pg.MOUSEWHEEL:
             if event.y < 0:
                 self.coordinate_system.zoom_out()
             else:
