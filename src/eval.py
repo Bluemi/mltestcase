@@ -23,7 +23,8 @@ def main():
             show_image = torch.concat([inputs, outputs])
             ds_mean, ds_std = get_mean_std('mnist')
             show_image = show_image * ds_std + ds_mean
-            imshow(torchvision.utils.make_grid(show_image))
+            if imshow(torchvision.utils.make_grid(show_image)) == 'escape':
+                break
 
 
 if __name__ == '__main__':

@@ -175,8 +175,16 @@ class CoordinateSystem:
 
 
 class Vec2Img(InteractiveVisualization):
-    def __init__(self, screen_size: None | Tuple[int, int] = None, framerate: int = 60):
+    def __init__(self, model, screen_size: None | Tuple[int, int] = None, framerate: int = 60):
+        """
+
+        :param model: The model that can be used to transform image to vec and vice versa.
+        :type model: model.MnistAutoencoder
+        :param screen_size: The start screen size of the pygame window
+        :param framerate: The framerate that is used to render
+        """
         super().__init__(screen_size=screen_size, framerate=framerate)
+        self.model = model
         self.coordinate_system = CoordinateSystem(self.screen.get_size())
         self.dragging = False
 
@@ -200,8 +208,3 @@ class Vec2Img(InteractiveVisualization):
                 self.coordinate_system.zoom_out()
             else:
                 self.coordinate_system.zoom_in()
-
-
-if __name__ == '__main__':
-    window = Vec2Img()
-    window.run()

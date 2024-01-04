@@ -9,7 +9,7 @@ case "$1" in
 		;;
 	vis)
 		shift
-		python3 src/utils/interactive_visualizations.py "$@"
+		python3 src/run_visualization.py "$@"
 		;;
 	*)
 		echo "choose train or eval"

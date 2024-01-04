@@ -38,9 +38,16 @@ class MnistAutoencoder(nn.Module):
         self.fc4 = nn.Linear(middle, 28 * 28)
 
     def forward(self, x):
+        x = self.encode(x)
+        x = self.decode(x)
+        return x
+
+    def encode(self, x):
         x = torch.flatten(x, start_dim=1)
         x = functional.elu(self.fc1(x))
-        x = self.fc2(x)
+        return self.fc2(x)
+
+    def decode(self, x):
         x = functional.elu(self.fc3(x))
         x = self.fc4(x)
         return x
