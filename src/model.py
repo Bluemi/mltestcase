@@ -3,7 +3,7 @@ import torch.nn as nn
 import torch.nn.functional as functional
 
 
-class Net(nn.Module):
+class MnistClassification(nn.Module):
     def __init__(self):
         super().__init__()
         self.conv1 = nn.Conv2d(3, 64, 3)
@@ -27,7 +27,7 @@ class Net(nn.Module):
         return x
 
 
-class DenseNetMnist(nn.Module):
+class MnistAutoencoder(nn.Module):
     def __init__(self):
         bottleneck = 2
         middle = 100

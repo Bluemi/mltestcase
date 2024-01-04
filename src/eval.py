@@ -1,14 +1,14 @@
 import torch
 import torchvision
 
-from model import DenseNetMnist
+from model import MnistAutoencoder
 from train import MODEL_PATH
 from utils.datasets import load_data, get_mean_std
 from utils import imshow
 
 
 def main():
-    net = DenseNetMnist()
+    net = MnistAutoencoder()
     net.load_state_dict(torch.load(MODEL_PATH))
 
     dataset = load_data('mnist', train=False, batch_size=8, num_workers=0)

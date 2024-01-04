@@ -4,7 +4,7 @@ import torchvision
 from torch.optim.lr_scheduler import CosineAnnealingLR
 from tqdm import trange
 
-from model import DenseNetMnist
+from model import MnistAutoencoder
 from utils import imshow
 from utils.datasets import load_data
 import torch
@@ -64,7 +64,7 @@ def main():
 
     start_time = time.time()
     for lr in LEARNING_RATES:
-        net = DenseNetMnist()
+        net = MnistAutoencoder()
         net.to(device)
 
         loss_function = nn.MSELoss()
