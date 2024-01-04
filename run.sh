@@ -7,6 +7,10 @@ case "$1" in
 	e|eval)
 		python3 src/eval.py
 		;;
+	vis)
+		shift
+		python3 src/utils/interactive_visualizations.py "$@"
+		;;
 	*)
 		echo "choose train or eval"
 		;;
