@@ -175,6 +175,17 @@ class CoordinateSystem:
         self.inverse_coord = np.linalg.pinv(self.coord)
 
 
+def tensor_to_pg_img(image: torch.Tensor):
+    image = np.swapaxes((image * 255).numpy(), 1, 2)
+    image = image.astype(np.uint8)
+    image = np.moveaxis(image, 0, 2)
+
+    if image.shape[-1] == 1:
+        image = np.repeat(image, 3, axis=-1).reshape(*image.shape[:2], 3)
+
+    return pg.surfarray.make_surface(image)
+
+
 class Vec2Img(InteractiveVisualization):
     def __init__(
             self, model, samples: Tuple[torch.Tensor, torch.Tensor], screen_size: None | Tuple[int, int] = None,
@@ -195,14 +206,29 @@ class Vec2Img(InteractiveVisualization):
         super().__init__(screen_size=screen_size, framerate=framerate)
         self.model = model
         self.samples = samples
+        self.sample_positions = self.calc_sample_positions()
+        self.images = self.calc_images()
         self.coordinate_system = CoordinateSystem(self.screen.get_size())
         self.dragging = False
+
+    def calc_sample_positions(self):
+        with torch.no_grad():
+            return self.model.encode(self.samples[0]).numpy()
+
+    def calc_images(self):
+        with torch.no_grad():
+            images = [tensor_to_pg_img(i) for i in self.samples[0]]
+        return images
 
     def tick(self, delta_time):
         pass
 
     def render(self):
-        pass
+        self.screen.fill(gray(0))
+
+        for image, pos in zip(self.images, self.sample_positions):
+            screen_pos = self.coordinate_system.space_to_screen(pos).astype(int)
+            self.screen.blit(image, tuple(screen_pos.flatten()))
 
     def handle_event(self, event: pg.event.Event):
         super().handle_event(event)

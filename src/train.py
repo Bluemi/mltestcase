@@ -25,7 +25,6 @@ def train(train_dataset, net, optimizer, loss_function, lr_scheduler, save_model
         current_loss_sum = 0.0
         example_counter = 0
         for data in train_dataset:
-            # inputs, labels = data[0].to(device), data[1].to(device)
             inputs, labels = data
             optimizer.zero_grad()
 

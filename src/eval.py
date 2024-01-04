@@ -21,8 +21,8 @@ def main():
             inputs = data.cpu()
 
             show_image = torch.concat([inputs, outputs])
-            ds_mean, ds_std = get_mean_std('mnist')
-            show_image = show_image * ds_std + ds_mean
+            # ds_mean, ds_std = get_mean_std('mnist')
+            # show_image = show_image * ds_std + ds_mean
             if imshow(torchvision.utils.make_grid(show_image)) == 'escape':
                 break
 
