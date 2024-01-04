@@ -4,6 +4,7 @@ from abc import ABCMeta, abstractmethod
 
 import numpy as np
 import pygame as pg
+import torch
 
 DEFAULT_SCREEN_SIZE = (800, 600)
 
@@ -175,16 +176,25 @@ class CoordinateSystem:
 
 
 class Vec2Img(InteractiveVisualization):
-    def __init__(self, model, screen_size: None | Tuple[int, int] = None, framerate: int = 60):
+    def __init__(
+            self, model, samples: Tuple[torch.Tensor, torch.Tensor], screen_size: None | Tuple[int, int] = None,
+            framerate: int = 60
+    ):
         """
 
         :param model: The model that can be used to transform image to vec and vice versa.
         :type model: model.MnistAutoencoder
+        :param samples: A tuple [images, labels].
+                        Images is a list of example images with shape [N, C, W, H], where N is the number of images, C
+                        is the number of channels, W is the width and H is the height.
+                        Labels is the list of corresponding labels with shape [N].
+        :type samples: torch.Tensor
         :param screen_size: The start screen size of the pygame window
         :param framerate: The framerate that is used to render
         """
         super().__init__(screen_size=screen_size, framerate=framerate)
         self.model = model
+        self.samples = samples
         self.coordinate_system = CoordinateSystem(self.screen.get_size())
         self.dragging = False
 
