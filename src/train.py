@@ -5,7 +5,8 @@ from torch.optim.lr_scheduler import CosineAnnealingLR
 from tqdm import trange
 
 from model import DenseNetMnist
-from utils import load_data, imshow
+from utils import imshow
+from utils.datasets import load_data
 import torch
 import torch.optim as optim
 from torch import nn
@@ -19,7 +20,7 @@ LEARNING_RATES = [0.2, 0.1, 0.05, 0.02, 0.01, 0.005, 0.002, 0.001]
 
 def train(train_dataset, net, optimizer, loss_function, lr_scheduler, save_model=True):
     last_loss = None
-    for epoch in trange(NUM_EPOCHS, ascii=True, desc='train with lr={:.2f}'.format(lr_scheduler.get_last_lr()[0])):
+    for _epoch in trange(NUM_EPOCHS, ascii=True, desc='train with lr={:.2f}'.format(lr_scheduler.get_last_lr()[0])):
         current_loss_sum = 0.0
         example_counter = 0
         for data in train_dataset:

@@ -3,7 +3,8 @@ import torchvision
 
 from model import DenseNetMnist
 from train import MODEL_PATH
-from utils import load_data, imshow, get_mean_std
+from utils.datasets import load_data, get_mean_std
+from utils import imshow
 
 
 def main():

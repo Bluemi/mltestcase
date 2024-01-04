@@ -1,6 +1,4 @@
 import os
-import numpy as np
-from matplotlib import pyplot as plt
 
 import torch
 import torchvision
@@ -22,14 +20,6 @@ def get_classes(ds_name):
         'cifar10': ('plane', 'car', 'bird', 'cat', 'deer', 'dog', 'frog', 'horse', 'ship', 'truck'),
         'mnist': tuple('0123456789')
     }[ds_name]
-
-
-def imshow(img):
-    # img = img / 2 + 0.5
-    np_img = img.numpy()
-    np_img = np.minimum(np.maximum(np_img, 0.0), 1.0)
-    plt.imshow(np.transpose(np_img, (1, 2, 0)))
-    plt.show()
 
 
 def load_data(dataset_name, train, batch_size=4, shuffle=True, num_workers=2, device=None):
