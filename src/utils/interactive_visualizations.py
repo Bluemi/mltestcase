@@ -129,16 +129,22 @@ class CoordinateSystem:
         self.coord: np.ndarray = coord
         self.inverse_coord: np.ndarray = np.linalg.pinv(self.coord)
 
-    def zoom_out(self):
+    def zoom_out(self, focus_point=None):
         scale = 1 / 1.2
         scale_mat = create_affine_transformation(scale=scale)
         self.coord = self.coord @ scale_mat
+        if focus_point is not None:
+            translation = (focus_point - self.get_zero_screen_point().flatten()) * (1 - scale)
+            self.translate(translation)
         self.update_inv()
 
-    def zoom_in(self):
+    def zoom_in(self, focus_point=None):
         scale = 1.2
         scale_mat = create_affine_transformation(scale=scale)
         self.coord = self.coord @ scale_mat
+        if focus_point is not None:
+            translation = (focus_point - self.get_zero_screen_point().flatten()) * (1 - scale)
+            self.translate(translation)
         self.update_inv()
 
     def translate(self, direction):
@@ -210,6 +216,7 @@ class Vec2Img(InteractiveVisualization):
         self.images = self.calc_images()
         self.coordinate_system = CoordinateSystem(self.screen.get_size())
         self.dragging = False
+        self.mouse_position = np.zeros(2, dtype=int)
 
     def calc_sample_positions(self):
         with torch.no_grad():
@@ -237,10 +244,11 @@ class Vec2Img(InteractiveVisualization):
         elif event.type == pg.MOUSEBUTTONUP:
             self.dragging = False
         elif event.type == pg.MOUSEMOTION:
+            self.mouse_position = np.array(event.pos, dtype=int)
             if self.dragging:
                 self.coordinate_system.translate(np.array(event.rel))
         elif event.type == pg.MOUSEWHEEL:
             if event.y < 0:
-                self.coordinate_system.zoom_out()
+                self.coordinate_system.zoom_out(focus_point=self.mouse_position)
             else:
-                self.coordinate_system.zoom_in()
+                self.coordinate_system.zoom_in(focus_point=self.mouse_position)
