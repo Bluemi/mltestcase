@@ -46,6 +46,7 @@ class InteractiveVisualization(metaclass=ABCMeta):
         self.screen = screen
 
         self.running = True
+        self.render_needed = True
         self.clock = pg.time.Clock()
         self.framerate = framerate
 
@@ -54,7 +55,9 @@ class InteractiveVisualization(metaclass=ABCMeta):
         while self.running:
             self.handle_events()
             self.tick(delta_time)
-            self.render()
+            if self.render_needed:
+                self.render()
+                self.render_needed = False
             pg.display.flip()
             delta_time = self.clock.tick(self.framerate)
         pg.quit()
@@ -286,11 +289,14 @@ class Vec2Img(InteractiveVisualization):
             self.mouse_position = np.array(event.pos, dtype=int)
             if self.dragging:
                 self.coordinate_system.translate(np.array(event.rel))
+                self.render_needed = True
         elif event.type == pg.MOUSEWHEEL:
             if event.y < 0:
                 self.coordinate_system.zoom_out(focus_point=self.mouse_position)
             else:
                 self.coordinate_system.zoom_in(focus_point=self.mouse_position)
+            self.render_needed = True
         elif event.type == pg.KEYDOWN:
             if event.key == pg.K_c:
                 self.show_colors = not self.show_colors
+                self.render_needed = True
