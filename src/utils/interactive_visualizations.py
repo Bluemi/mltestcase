@@ -7,6 +7,18 @@ import pygame as pg
 import torch
 
 DEFAULT_SCREEN_SIZE = (800, 600)
+COLORS = np.array([
+    [0.12, 0.47, 0.71],
+    [1.00, 0.50, 0.05],
+    [0.17, 0.63, 0.17],
+    [0.84, 0.15, 0.16],
+    [0.58, 0.40, 0.74],
+    [0.55, 0.34, 0.29],
+    [0.89, 0.47, 0.76],
+    [0.50, 0.50, 0.50],
+    [0.74, 0.74, 0.13],
+    [0.09, 0.75, 0.81],
+])
 
 
 def gray(brightness):
@@ -181,18 +193,22 @@ class CoordinateSystem:
         self.inverse_coord = np.linalg.pinv(self.coord)
 
 
-def tensor_to_pg_img(image: torch.Tensor, alpha_threshold=0):
+def tensor_to_pg_img(image: torch.Tensor, alpha_threshold=0, color=None):
     image = np.swapaxes((image * 255).numpy(), 1, 2)
-    image = image.astype(np.uint8)
     image = np.moveaxis(image, 0, 2)
 
     alpha_mask = (image > alpha_threshold).astype(np.uint8) * 255
     if image.shape[-1] == 1:
         image = np.repeat(image, 3, axis=-1).reshape(*image.shape[:2], 3)
 
-    surface = pg.surfarray.make_surface(image)
-    surface = surface.convert_alpha()
+    # handle color
+    if color is not None:
+        image *= color.reshape(1, 1, -1)
 
+    surface = pg.surfarray.make_surface(image.astype(int))
+
+    # add alpha
+    surface = surface.convert_alpha()
     alpha_pixels = pg.surfarray.pixels_alpha(surface)
     alpha_pixels[:] = alpha_mask.reshape(alpha_mask.shape[:2])
 
@@ -220,18 +236,27 @@ class Vec2Img(InteractiveVisualization):
         self.model = model
         self.samples = samples
         self.sample_positions = self.calc_sample_positions()
-        self.images = self.calc_images()
+        self.images = self.calc_images(color_images=False)
+        self.colored_images = self.calc_images(color_images=True)
         self.coordinate_system = CoordinateSystem(self.screen.get_size())
         self.dragging = False
+        self.show_colors = True
         self.mouse_position = np.zeros(2, dtype=int)
 
     def calc_sample_positions(self):
         with torch.no_grad():
             return self.model.encode(self.samples[0]).numpy()
 
-    def calc_images(self):
+    def calc_images(self, color_images=False):
         with torch.no_grad():
-            images = [tensor_to_pg_img(i, 128) for i in self.samples[0]]
+            images = []
+            for img, label in zip(self.samples[0], self.samples[1]):
+                if color_images:
+                    color = COLORS[label]
+                    img = tensor_to_pg_img(img, 128, color)
+                else:
+                    img = tensor_to_pg_img(img, 128)
+                images.append(img)
         return images
 
     def tick(self, delta_time):
@@ -240,7 +265,8 @@ class Vec2Img(InteractiveVisualization):
     def render(self):
         self.screen.fill(gray(0))
 
-        for image, pos in zip(self.images, self.sample_positions):
+        images = self.colored_images if self.show_colors else self.images
+        for image, pos in zip(images, self.sample_positions):
             screen_pos = self.coordinate_system.space_to_screen(pos).astype(int)
             self.screen.blit(image, tuple(screen_pos.flatten()))
 
@@ -259,3 +285,6 @@ class Vec2Img(InteractiveVisualization):
                 self.coordinate_system.zoom_out(focus_point=self.mouse_position)
             else:
                 self.coordinate_system.zoom_in(focus_point=self.mouse_position)
+        elif event.type == pg.KEYDOWN:
+            if event.key == pg.K_c:
+                self.show_colors = not self.show_colors
