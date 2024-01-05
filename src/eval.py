@@ -4,7 +4,7 @@ import torchvision
 from model import MnistAutoencoder
 from train import MODEL_PATH
 from utils.datasets import load_data, get_mean_std
-from utils import imshow
+from utils import imshow, denormalize
 
 
 def main():
@@ -21,8 +21,8 @@ def main():
             inputs = data.cpu()
 
             show_image = torch.concat([inputs, outputs])
-            # ds_mean, ds_std = get_mean_std('mnist')
-            # show_image = show_image * ds_std + ds_mean
+            ds_mean, ds_std = get_mean_std('mnist')
+            show_image = denormalize(show_image, ds_mean, ds_std)
             if imshow(torchvision.utils.make_grid(show_image)) == 'escape':
                 break
 

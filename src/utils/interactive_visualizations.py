@@ -6,6 +6,8 @@ import numpy as np
 import pygame as pg
 import torch
 
+from utils import denormalize
+
 DEFAULT_SCREEN_SIZE = (800, 600)
 COLORS = np.array([
     [0.12, 0.47, 0.71],
@@ -193,7 +195,9 @@ class CoordinateSystem:
         self.inverse_coord = np.linalg.pinv(self.coord)
 
 
-def tensor_to_pg_img(image: torch.Tensor, alpha_threshold=0, color=None):
+def tensor_to_pg_img(image: torch.Tensor, alpha_threshold=0, color=None, normalization_mean_std=(0, 1)):
+    image = denormalize(image, normalization_mean_std[0], normalization_mean_std[1])
+
     image = np.swapaxes((image * 255).numpy(), 1, 2)
     image = np.moveaxis(image, 0, 2)
 
@@ -218,7 +222,7 @@ def tensor_to_pg_img(image: torch.Tensor, alpha_threshold=0, color=None):
 class Vec2Img(InteractiveVisualization):
     def __init__(
             self, model, samples: Tuple[torch.Tensor, torch.Tensor], screen_size: None | Tuple[int, int] = None,
-            framerate: int = 60
+            framerate: int = 60, normalization_mean_std=(0, 1)
     ):
         """
 
@@ -231,10 +235,12 @@ class Vec2Img(InteractiveVisualization):
         :type samples: torch.Tensor
         :param screen_size: The start screen size of the pygame window
         :param framerate: The framerate that is used to render
+        :param normalization_mean_std: Tuple of mean and std used to denormalize the images.
         """
         super().__init__(screen_size=screen_size, framerate=framerate)
         self.model = model
         self.samples = samples
+        self.normalization_mean_std = normalization_mean_std
         self.sample_positions = self.calc_sample_positions()
         self.images = self.calc_images(color_images=False)
         self.colored_images = self.calc_images(color_images=True)
@@ -253,9 +259,9 @@ class Vec2Img(InteractiveVisualization):
             for img, label in zip(self.samples[0], self.samples[1]):
                 if color_images:
                     color = COLORS[label]
-                    img = tensor_to_pg_img(img, 128, color)
+                    img = tensor_to_pg_img(img, 128, color, normalization_mean_std=self.normalization_mean_std)
                 else:
-                    img = tensor_to_pg_img(img, 128)
+                    img = tensor_to_pg_img(img, 128, normalization_mean_std=self.normalization_mean_std)
                 images.append(img)
         return images
 

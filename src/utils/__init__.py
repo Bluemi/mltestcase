@@ -24,3 +24,7 @@ def imshow(img):
     plt.close()
 
     return pressed_key
+
+
+def denormalize(data, mean, std):
+    return data * std + mean

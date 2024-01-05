@@ -1,6 +1,6 @@
 import os
 from collections import defaultdict
-from typing import Tuple, List
+from typing import Tuple
 
 import torch
 import torchvision
@@ -25,10 +25,10 @@ def get_classes(ds_name):
 
 
 def load_data(dataset_name, train, batch_size=4, shuffle=True, num_workers=2, device=None, use_dataloader=True):
-    # ds_mean, ds_std = get_mean_std(dataset_name)
+    ds_mean, ds_std = get_mean_std(dataset_name)
     transform = transforms.Compose([
         transforms.ToTensor(),
-        # transforms.Normalize(ds_mean, ds_std)
+        transforms.Normalize(ds_mean, ds_std)
     ])
 
     dataset_c = {
