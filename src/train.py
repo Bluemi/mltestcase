@@ -16,7 +16,7 @@ BATCH_SIZE = 512
 NUM_EPOCHS = 200
 MODEL_PATH = 'models/mnist_autoencoder.pth'
 # LEARNING_RATES = [0.2, 0.1, 0.05, 0.02, 0.01, 0.005, 0.002, 0.001]
-LEARNING_RATES = [0.02]
+LEARNING_RATE = 0.005
 
 
 def train(train_dataset, net, optimizer, loss_function, lr_scheduler, save_model=True):
@@ -63,15 +63,14 @@ def main():
     train_dataset = load_data('mnist', train=True, batch_size=BATCH_SIZE, num_workers=0, device=device)
 
     start_time = time.time()
-    for lr in LEARNING_RATES:
-        net = MnistAutoencoder()
-        net.to(device)
+    net = MnistAutoencoder()
+    net.to(device)
 
-        loss_function = nn.MSELoss()
-        optimizer = optim.AdamW(net.parameters(), lr=lr, weight_decay=0.0)
-        lr_scheduler = CosineAnnealingLR(optimizer, NUM_EPOCHS, 0.0002)
-        last_loss = train(train_dataset, net, optimizer, loss_function, lr_scheduler, save_model=True)
-        print('lr={} gives loss={}'.format(lr, last_loss))
+    loss_function = nn.MSELoss()
+    optimizer = optim.AdamW(net.parameters(), lr=LEARNING_RATE, weight_decay=0.0002)
+    lr_scheduler = CosineAnnealingLR(optimizer, NUM_EPOCHS, 0.0002)
+    last_loss = train(train_dataset, net, optimizer, loss_function, lr_scheduler, save_model=True)
+    print('lr={} gives loss={}'.format(LEARNING_RATE, last_loss))
     print(f'training took {time.time() - start_time} seconds.')
 
     # test_model(train_dataset, net, device)

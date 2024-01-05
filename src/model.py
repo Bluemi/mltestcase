@@ -27,15 +27,33 @@ class MnistClassification(nn.Module):
         return x
 
 
+def noop(x):
+    return x
+
+
 class MnistAutoencoder(nn.Module):
-    def __init__(self):
+    def __init__(self, training=False):
+        super().__init__()
+        self.training = training
+
         bottleneck = 2
         middle = 100
-        super().__init__()
-        self.fc1 = nn.Linear(28 * 28, middle)
-        self.fc2 = nn.Linear(middle, bottleneck)
-        self.fc3 = nn.Linear(bottleneck, middle)
-        self.fc4 = nn.Linear(middle, 28 * 28)
+
+        self.encoder = nn.Sequential(
+            nn.Linear(28 * 28, middle),
+            nn.Sigmoid(),
+            # nn.Linear(middle, middle),
+            # nn.Sigmoid(),
+            nn.Linear(middle, bottleneck)
+        )
+
+        self.decoder = nn.Sequential(
+            nn.Linear(bottleneck, middle),
+            nn.Sigmoid(),
+            # nn.Linear(middle, middle),
+            # nn.Sigmoid(),
+            nn.Linear(middle, 28 * 28)
+        )
 
     def forward(self, x):
         x = self.encode(x)
@@ -44,10 +62,8 @@ class MnistAutoencoder(nn.Module):
 
     def encode(self, x):
         x = torch.flatten(x, start_dim=1)
-        x = functional.elu(self.fc1(x))
-        return self.fc2(x)
+
+        return self.encoder(x)
 
     def decode(self, x):
-        x = functional.elu(self.fc3(x))
-        x = self.fc4(x)
-        return x
+        return self.decoder(x)
