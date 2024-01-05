@@ -68,7 +68,7 @@ def main():
         net.to(device)
 
         loss_function = nn.MSELoss()
-        optimizer = optim.AdamW(net.parameters(), lr=lr, weight_decay=0.002)
+        optimizer = optim.AdamW(net.parameters(), lr=lr, weight_decay=0.0)
         lr_scheduler = CosineAnnealingLR(optimizer, NUM_EPOCHS, 0.0002)
         last_loss = train(train_dataset, net, optimizer, loss_function, lr_scheduler, save_model=True)
         print('lr={} gives loss={}'.format(lr, last_loss))
