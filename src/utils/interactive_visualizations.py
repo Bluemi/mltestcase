@@ -300,3 +300,7 @@ class Vec2Img(InteractiveVisualization):
             if event.key == pg.K_c:
                 self.show_colors = not self.show_colors
                 self.render_needed = True
+        elif event.type in (pg.WINDOWSIZECHANGED, pg.KEYUP, pg.ACTIVEEVENT):
+            self.render_needed = True
+        else:
+            print(event)
