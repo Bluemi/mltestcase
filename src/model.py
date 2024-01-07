@@ -32,28 +32,39 @@ def noop(x):
 
 
 class MnistAutoencoder(nn.Module):
-    def __init__(self, training=False):
+    def __init__(self, activation_func: str = 'sigmoid', use_activation_for_z=False, training=False):
         super().__init__()
         self.training = training
 
         bottleneck = 2
         middle = 100
 
-        self.encoder = nn.Sequential(
-            nn.Linear(28 * 28, middle),
-            nn.Sigmoid(),
-            # nn.Linear(middle, middle),
-            # nn.Sigmoid(),
-            nn.Linear(middle, bottleneck)
-        )
+        if activation_func == 'sigmoid':
+            activation_function = nn.Sigmoid
+        elif activation_func == 'tanh':
+            activation_function = nn.Tanh
+        elif activation_func == 'relu':
+            activation_function = nn.ReLU
+        elif activation_func == 'elu':
+            activation_function = nn.ELU
+        else:
+            raise ValueError('Unknown activation function: {}'.format(activation_func))
 
-        self.decoder = nn.Sequential(
+        encoder_layers = [
+            nn.Linear(28 * 28, middle),
+            activation_function(),
+            nn.Linear(middle, bottleneck)
+        ]
+        if use_activation_for_z:
+            encoder_layers.append(activation_function())
+        self.encoder = nn.Sequential(*encoder_layers)
+
+        decoder_layers = [
             nn.Linear(bottleneck, middle),
-            nn.Sigmoid(),
-            # nn.Linear(middle, middle),
-            # nn.Sigmoid(),
+            activation_function(),
             nn.Linear(middle, 28 * 28)
-        )
+        ]
+        self.decoder = nn.Sequential(*decoder_layers)
 
     def forward(self, x):
         x = self.encode(x)

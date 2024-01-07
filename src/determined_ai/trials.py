@@ -15,16 +15,24 @@ class AutoencoderTrial(PyTorchTrial):
         super().__init__(context)
         self.context = context
 
-        self.model = self.context.wrap_model(MnistAutoencoder())
+        self.model = self.context.wrap_model(self._build_model())
 
         # optimizer
         # TODO: learning rate scheduler
-        self.optimizer = self.context.wrap_optimizer(
-            optim.AdamW(self.model.parameters(), lr=0.002, weight_decay=0.0002)
-        )
+        self.optimizer = self.context.wrap_optimizer(self._build_optimizer())
 
         # loss function
         self.loss_function = nn.MSELoss()
+
+    def _build_model(self):
+        activation_func = self.context.get_hparam('activation_func')
+        use_activation_for_z = self.context.get_hparam('use_activation_for_z')
+        return MnistAutoencoder(activation_func=activation_func, use_activation_for_z=use_activation_for_z)
+
+    def _build_optimizer(self):
+        lr = self.context.get_hparam('lr')
+        weight_decay = self.context.get_hparam('weight_decay')
+        return optim.AdamW(self.model.parameters(), lr=lr, weight_decay=weight_decay)
 
     def train_batch(
         self, batch: pytorch.TorchData, epoch_idx: int, batch_idx: int
