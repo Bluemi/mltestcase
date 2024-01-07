@@ -1,3 +1,4 @@
+import sys
 import time
 
 import torchvision
@@ -11,12 +12,39 @@ from torch import nn
 
 
 BATCH_SIZE = 512
-NUM_EPOCHS = 200
-MODEL_PATH = 'models/mnist_autoencoder.pth'
+NUM_EPOCHS = 150
+EMBEDDING_SIZE = 2
+MODEL_PATH = 'models/mnist_autoencoder_custom_loss.pth'
 LEARNING_RATE = 0.007
 
 
-def train(train_dataset, net, optimizer, loss_function, save_model=True):
+def same_loss(diffs, labels: torch.Tensor):
+    same_mask = torch.eq(labels.reshape(-1, 1), labels.reshape(1, -1))
+    masked_diff = same_mask * diffs
+    s_loss = torch.sum(masked_diff) / torch.sum(same_mask)
+    return s_loss
+
+
+def different_loss(diffs, labels, sigma):
+    different_mask = torch.ne(labels.reshape(1, -1), labels.reshape(-1, 1))
+    masked_diff = torch.exp(-different_mask.to(int) * diffs * sigma)
+    d_loss = torch.sum(masked_diff) / torch.sum(different_mask)
+    return d_loss
+
+
+def custom_loss_function(outputs, inputs, embedding, labels, beta=1.0, gamma=1.0, sigma=0.5):
+    batch_size = outputs.size(0)
+    diffs = embedding.reshape(batch_size, 1, EMBEDDING_SIZE) - embedding.reshape(1, batch_size, EMBEDDING_SIZE)
+    diffs = torch.sum(torch.square(diffs), axis=2)
+    s_loss = same_loss(diffs, labels)
+    d_loss = different_loss(diffs, labels, sigma)
+    mse_loss = torch.mean(torch.square(outputs - inputs))
+    loss = mse_loss + beta * s_loss + gamma * d_loss
+    print(f'loss={loss} mse_loss={mse_loss} s_loss={s_loss * beta}, d_loss={d_loss * gamma}')
+    return loss
+
+
+def train(train_dataset, net, optimizer, save_model=True):
     last_loss = None
     # for _epoch in trange(NUM_EPOCHS, ascii=True, desc='train with lr={:.2f}'.format(lr)):
     for epoch in range(NUM_EPOCHS):
@@ -26,8 +54,12 @@ def train(train_dataset, net, optimizer, loss_function, save_model=True):
             inputs, labels = data
             optimizer.zero_grad()
 
-            outputs = net(inputs)
-            loss = loss_function(outputs, torch.flatten(inputs, start_dim=1))
+            embedding = net.encode(inputs)
+            outputs = net.decode(embedding)
+
+            loss = custom_loss_function(
+                outputs, torch.flatten(inputs, start_dim=1), embedding, labels, beta=1.0, gamma=2.0
+            )
             loss.backward()
             optimizer.step()
 
@@ -63,10 +95,9 @@ def main():
     net = MnistAutoencoder()
     net.to(device)
 
-    loss_function = nn.MSELoss()
     optimizer = optim.AdamW(net.parameters(), lr=LEARNING_RATE, weight_decay=0.0015)
 
-    last_loss = train(train_dataset, net, optimizer, loss_function, save_model=True)
+    last_loss = train(train_dataset, net, optimizer, save_model=True)
     print('lr={} gives loss={}'.format(LEARNING_RATE, last_loss))
     print(f'training took {time.time() - start_time} seconds.')
 
