@@ -16,7 +16,7 @@ MODEL_PATH = 'models/mnist_autoencoder.pth'
 LEARNING_RATE = 0.007
 
 
-def train(train_dataset, net, optimizer, loss_function, lr, save_model=True):
+def train(train_dataset, net, optimizer, loss_function, save_model=True):
     last_loss = None
     # for _epoch in trange(NUM_EPOCHS, ascii=True, desc='train with lr={:.2f}'.format(lr)):
     for epoch in range(NUM_EPOCHS):
@@ -65,8 +65,8 @@ def main():
 
     loss_function = nn.MSELoss()
     optimizer = optim.AdamW(net.parameters(), lr=LEARNING_RATE, weight_decay=0.0015)
-    # lr_scheduler = CosineAnnealingLR(optimizer, NUM_EPOCHS, 0.0002)
-    last_loss = train(train_dataset, net, optimizer, loss_function, LEARNING_RATE, save_model=True)
+
+    last_loss = train(train_dataset, net, optimizer, loss_function, save_model=True)
     print('lr={} gives loss={}'.format(LEARNING_RATE, last_loss))
     print(f'training took {time.time() - start_time} seconds.')
 
