@@ -4,10 +4,13 @@ from typing import Tuple
 
 import torch
 import torchvision
-from torch.utils import data
 import torchvision.transforms as transforms
+from determined.pytorch import DataLoader
 from torch.utils.data import Dataset
 from tqdm import tqdm
+
+
+POSSIBLE_DATA_DIR_LOCATIONS = [os.path.expanduser('~/misc/data'), '/data']
 
 
 def get_mean_std(ds_name):
@@ -24,6 +27,13 @@ def get_classes(ds_name):
     }[ds_name]
 
 
+def get_data_dir():
+    possible = [p for p in POSSIBLE_DATA_DIR_LOCATIONS if os.path.isdir(p)]
+    if not possible:
+        raise ValueError('No datadir could be found.')
+    return possible[0]
+
+
 def load_data(dataset_name, train, batch_size=4, shuffle=True, num_workers=2, device=None, use_dataloader=True):
     ds_mean, ds_std = get_mean_std(dataset_name)
     transform = transforms.Compose([
@@ -36,8 +46,10 @@ def load_data(dataset_name, train, batch_size=4, shuffle=True, num_workers=2, de
         'mnist': MnistDataset,
     }[dataset_name]
 
+    datadir = get_data_dir()
+
     dataset = dataset_c(
-        root=os.path.expanduser('~/misc/data/'), download=False, train=train, transform=transform
+        root=datadir, download=False, train=train, transform=transform
     )
     if device is not None:
         dataset.to_device(device)
@@ -45,11 +57,9 @@ def load_data(dataset_name, train, batch_size=4, shuffle=True, num_workers=2, de
     if not use_dataloader:
         return dataset
 
-    data_loader = torch.utils.data.DataLoader(
+    return DataLoader(
         dataset, batch_size=batch_size, shuffle=shuffle, num_workers=num_workers, pin_memory=False
     )
-
-    return data_loader
 
 
 class MnistDataset(Dataset):

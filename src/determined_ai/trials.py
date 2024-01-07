@@ -1,4 +1,4 @@
-from typing import Tuple, Union, Dict, Any
+from typing import Union, Dict, Any
 
 import torch
 from determined import pytorch
@@ -15,11 +15,13 @@ class AutoencoderTrial(PyTorchTrial):
         super().__init__(context)
         self.context = context
 
-        self.model = MnistAutoencoder()
+        self.model = self.context.wrap_model(MnistAutoencoder())
 
         # optimizer
         # TODO: learning rate scheduler
-        self.optimizer = optim.AdamW(self.model.parameters(), lr=0.002, weight_decay=0.0002)
+        self.optimizer = self.context.wrap_optimizer(
+            optim.AdamW(self.model.parameters(), lr=0.002, weight_decay=0.0002)
+        )
 
         # loss function
         self.loss_function = nn.MSELoss()

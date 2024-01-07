@@ -1,0 +1,29 @@
+name: AutoEncoder::Test
+description: "Test Autoencoder Experiment"
+hyperparameters:
+  global_batch_size: 512
+records_per_epoch: 60000
+min_validation_period:
+  epochs: 20
+workspace: "ML-Testcase"
+project: AutoEncoder
+searcher:
+  name: single
+  metric: loss
+  max_length:
+    epochs: 100
+  smaller_is_better: true
+entrypoint: determined_ai.trials:AutoencoderTrial
+environment:
+  image:
+    cpu: "determinedai/environments:cuda-11.3-pytorch-1.12-tf-2.11-gpu-0.26.4"
+    cuda: "determinedai/environments:cuda-11.3-pytorch-1.12-tf-2.11-gpu-0.26.4"
+bind_mounts:
+  - host_path: "/home/alok/misc/data"
+    container_path: "/data"
+    read_only: true
+checkpoint_storage:
+  save_trial_best: 0
+  save_trial_latest: 0
+  save_experiment_best: 0
+max_restarts: 0
