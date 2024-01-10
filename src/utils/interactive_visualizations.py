@@ -1,3 +1,4 @@
+import enum
 import numbers
 from typing import Tuple
 from abc import ABCMeta, abstractmethod
@@ -200,6 +201,7 @@ class CoordinateSystem:
 
 def tensor_to_pg_img(image: torch.Tensor, alpha_threshold=0, color=None, normalization_mean_std=(0, 1)):
     image = denormalize(image, normalization_mean_std[0], normalization_mean_std[1])
+    image = np.minimum(np.maximum(image, 0), 1)
 
     image = np.swapaxes((image * 255).numpy(), 1, 2)
     image = np.moveaxis(image, 0, 2)
@@ -222,7 +224,45 @@ def tensor_to_pg_img(image: torch.Tensor, alpha_threshold=0, color=None, normali
     return surface
 
 
+def get_raster_coordinates(min_coord, max_coord, num_points_wanted):
+    def adapt_quotient(quotient):
+        target_dividends = [1, 2.5, 5, 10]
+        if quotient <= 0:
+            raise ValueError('Invalid quotient: {}'.format(quotient))
+        numb_ten_potency = 0
+        while quotient > 10:
+            quotient *= 0.1
+            numb_ten_potency += 1
+        while quotient < 1:
+            quotient *= 10
+            numb_ten_potency -= 1
+
+        diffs = [abs(quotient - target) for target in target_dividends]
+        index = np.argmin(diffs)
+        best_fitting = target_dividends[index] * (10 ** numb_ten_potency)
+
+        return best_fitting
+    width = max_coord - min_coord
+    # print('width: {}  max_coord: {}  min_coord: {}'.format(width, max_coord, min_coord))
+    space_between_points = adapt_quotient(width / num_points_wanted)
+    # print('space_between_points:', space_between_points)
+    coord_minimum = np.round(min_coord / space_between_points) * space_between_points
+    coord_maximum = np.round(max_coord / space_between_points) * space_between_points + space_between_points
+
+    return np.arange(coord_minimum, coord_maximum + space_between_points, space_between_points)
+
+
 class Vec2Img(InteractiveVisualization):
+    class RenderMode(enum.Enum):
+        ENCODING = 0
+        DECODING = 1
+
+        def next(self):
+            if self == self.ENCODING:
+                return self.DECODING
+            elif self == self.DECODING:
+                return self.ENCODING
+
     def __init__(
             self, model, samples: Tuple[torch.Tensor, torch.Tensor], screen_size: None | Tuple[int, int] = None,
             framerate: int = 60, normalization_mean_std=(0, 1)
@@ -250,6 +290,7 @@ class Vec2Img(InteractiveVisualization):
         self.coordinate_system = CoordinateSystem(self.screen.get_size())
         self.dragging = False
         self.show_colors = True
+        self.render_mode = Vec2Img.RenderMode.ENCODING
         self.mouse_position = np.zeros(2, dtype=int)
 
     def calc_sample_positions(self):
@@ -274,10 +315,33 @@ class Vec2Img(InteractiveVisualization):
     def render(self):
         self.screen.fill(gray(0))
 
-        images = self.colored_images if self.show_colors else self.images
-        for image, pos in zip(images, self.sample_positions):
-            screen_pos = self.coordinate_system.space_to_screen(pos).astype(int)
-            self.screen.blit(image, tuple(screen_pos.flatten()))
+        if self.render_mode == Vec2Img.RenderMode.ENCODING:
+            images = self.colored_images if self.show_colors else self.images
+            for image, pos in zip(images, self.sample_positions):
+                screen_pos = self.coordinate_system.space_to_screen(pos).astype(int)
+                self.screen.blit(image, tuple(screen_pos.flatten()))
+        elif self.render_mode == Vec2Img.RenderMode.DECODING:
+            self.render_decoding()
+
+    def render_decoding(self):
+        screen_size = self.screen.get_size()
+        extreme_points_screen = np.array([[0, 0], screen_size])
+        extreme_points_space = self.coordinate_system.screen_to_space(extreme_points_screen.T).T
+
+        y_raster = get_raster_coordinates(extreme_points_space[1, 1], extreme_points_space[0, 1], screen_size[1] // 30)
+        x_raster = get_raster_coordinates(extreme_points_space[0, 0], extreme_points_space[1, 0], screen_size[0] // 30)
+        grid = np.meshgrid(x_raster, y_raster, indexing='xy')
+        grid = np.stack(grid, axis=2).reshape(-1, 2)
+
+        grid_tensor = torch.tensor(grid, dtype=torch.float32)
+        with torch.no_grad():
+            decoded_images = self.model.decode(grid_tensor)
+
+        for pos, image in zip(grid, decoded_images):
+            screen_pos = self.coordinate_system.space_to_screen(pos)
+            img = tensor_to_pg_img(image.reshape(1, 28, 28), 32, normalization_mean_std=self.normalization_mean_std)
+            self.screen.blit(img, tuple(screen_pos.flatten()))
+            # print(decoded_images.shape)
 
     def handle_event(self, event: pg.event.Event):
         super().handle_event(event)
@@ -299,6 +363,9 @@ class Vec2Img(InteractiveVisualization):
         elif event.type == pg.KEYDOWN:
             if event.key == pg.K_c:
                 self.show_colors = not self.show_colors
+                self.render_needed = True
+            if event.key == pg.K_m:
+                self.render_mode = self.render_mode.next()
                 self.render_needed = True
         elif event.type in (pg.WINDOWSIZECHANGED, pg.KEYUP, pg.ACTIVEEVENT):
             self.render_needed = True
