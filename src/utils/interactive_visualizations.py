@@ -341,7 +341,6 @@ class Vec2Img(InteractiveVisualization):
             screen_pos = self.coordinate_system.space_to_screen(pos)
             img = tensor_to_pg_img(image.reshape(1, 28, 28), 32, normalization_mean_std=self.normalization_mean_std)
             self.screen.blit(img, tuple(screen_pos.flatten()))
-            # print(decoded_images.shape)
 
     def handle_event(self, event: pg.event.Event):
         super().handle_event(event)
