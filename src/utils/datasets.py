@@ -5,7 +5,10 @@ from typing import Tuple
 import torch
 import torchvision
 import torchvision.transforms as transforms
-from determined.pytorch import DataLoader
+try:
+    from determined.pytorch import DataLoader
+except ImportError:
+    from torch.utils.data import DataLoader
 from torch.utils.data import Dataset
 from tqdm import tqdm
 
@@ -49,7 +52,7 @@ def load_data(dataset_name, train, batch_size=4, shuffle=True, num_workers=2, de
     datadir = get_data_dir()
 
     dataset = dataset_c(
-        root=datadir, download=False, train=train, transform=transform
+        root=datadir, download=True, train=train, transform=transform
     )
     if device is not None:
         dataset.to_device(device)
