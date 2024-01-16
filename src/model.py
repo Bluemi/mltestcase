@@ -66,10 +66,16 @@ class MnistAutoencoder(nn.Module):
         ]
         self.decoder = nn.Sequential(*decoder_layers)
 
+        self.classification_head = nn.Linear(bottleneck, 10)
+
     def forward(self, x):
         x = self.encode(x)
         x = self.decode(x)
         return x
+
+    def forward_classify(self, x):
+        x = self.encode(x)
+        return self.classification_head(x)
 
     def encode(self, x):
         x = torch.flatten(x, start_dim=1)

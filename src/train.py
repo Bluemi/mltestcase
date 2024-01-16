@@ -14,7 +14,7 @@ from torch import nn
 BATCH_SIZE = 512
 NUM_EPOCHS = 150
 EMBEDDING_SIZE = 2
-MODEL_PATH = 'models/mnist_autoencoder_custom_loss.pth'
+MODEL_PATH = 'models/mnist_classifier.pth'
 LEARNING_RATE = 0.007
 
 
@@ -47,6 +47,7 @@ def custom_loss_function(outputs, inputs, embedding, labels, beta=1.0, gamma=1.0
 def train(train_dataset, net, optimizer, save_model=True):
     last_loss = None
     # for _epoch in trange(NUM_EPOCHS, ascii=True, desc='train with lr={:.2f}'.format(lr)):
+    loss_function = nn.CrossEntropyLoss()
     for epoch in range(NUM_EPOCHS):
         current_loss_sum = 0.0
         example_counter = 0
@@ -54,12 +55,14 @@ def train(train_dataset, net, optimizer, save_model=True):
             inputs, labels = data
             optimizer.zero_grad()
 
-            embedding = net.encode(inputs)
-            outputs = net.decode(embedding)
+            # embedding = net.encode(inputs)
+            # outputs = net.decode(embedding)
 
-            loss = custom_loss_function(
-                outputs, torch.flatten(inputs, start_dim=1), embedding, labels, beta=1.0, gamma=2.0
-            )
+            # loss = custom_loss_function(
+            #     outputs, torch.flatten(inputs, start_dim=1), embedding, labels, beta=1.0, gamma=2.0
+            # )
+            predictions = net.forward_classify(inputs)
+            loss = loss_function(predictions, labels)
             loss.backward()
             optimizer.step()
 

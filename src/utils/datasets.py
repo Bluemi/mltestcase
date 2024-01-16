@@ -68,7 +68,7 @@ class MnistDataset(Dataset):
             root=root, download=download, train=train, transform=transform
         )
         self.mnist_data = torch.zeros((len(ds), 1, 28, 28))
-        self.mnist_labels = torch.zeros(len(ds), dtype=torch.int)
+        self.mnist_labels = torch.zeros(len(ds), dtype=torch.long)
         # noinspection PyTypeChecker
         for i, sample in tqdm(enumerate(ds), desc="loading mnist", total=len(ds), ascii=True):
             self.mnist_data[i] = sample[0]
