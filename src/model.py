@@ -66,7 +66,11 @@ class MnistAutoencoder(nn.Module):
         ]
         self.decoder = nn.Sequential(*decoder_layers)
 
-        self.classification_head = nn.Linear(bottleneck, 10)
+        classification_layers = [
+            nn.Linear(bottleneck, 10),
+            nn.Sigmoid()
+        ]
+        self.classification_head = nn.Sequential(*classification_layers)
 
     def forward(self, x):
         x = self.encode(x)
