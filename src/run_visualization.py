@@ -1,3 +1,5 @@
+import sys
+
 import torch
 
 from train import MODEL_PATH
@@ -7,8 +9,11 @@ from model import MnistAutoencoder
 
 
 def main():
+    model_path = MODEL_PATH
+    if len(sys.argv) > 1:
+        model_path = sys.argv[1]
     model = MnistAutoencoder()
-    model.load_state_dict(torch.load(MODEL_PATH))
+    model.load_state_dict(torch.load(model_path), strict=False)
 
     dataset = load_data('mnist', train=False, batch_size=8, num_workers=0, use_dataloader=False)
     samples = get_examples(dataset, len(get_classes('mnist')), n=500)
