@@ -73,7 +73,7 @@ def train(train_dataset, net, optimizer, save_path: Optional[str] = None):
             current_loss_sum += loss.item()
             example_counter += 1
         last_loss = current_loss_sum / example_counter
-        print(f'Epoch {epoch+1}: {last_loss}')
+        print(f'Epoch {epoch+1}: {last_loss:.4f}')
 
     if save_path:
         torch.save(net.state_dict(), save_path)
@@ -100,7 +100,7 @@ def parse_args():
         'save_path', type=str, default=None, nargs='?',
         help='The path where the trained model will be saved. If not specified will not save any model.'
     )
-    parser.add_argument('--init', type=str, default='', help='The model to load as starting point')
+    parser.add_argument('--init', type=str, default=None, help='The model to load as starting point')
     parser.add_argument('--lr', type=float, default=LEARNING_RATE, help='The learning rate used for training.')
     parser.add_argument('--wc', type=float, default=0.0015, help='The weight decay used for training.')
 
@@ -111,17 +111,20 @@ def main():
     args = parse_args()
 
     device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
-    train_dataset = load_data('mnist', train=True, batch_size=BATCH_SIZE, num_workers=0, device=device)
 
     start_time = time.time()
     model = MnistAutoencoder()
 
+    print('loading model: \"{}\"'.format(args.init))
     if args.init:
-        print('loading model \"{}\"'.format(args.init))
         model.load_state_dict(torch.load(args.init), strict=False)
     model.to(device)
 
+    print('will save model to: \"{}\"'.format(args.save_path))
+
     optimizer = optim.AdamW(model.parameters(), lr=args.lr, weight_decay=args.wc)
+
+    train_dataset = load_data('mnist', train=True, batch_size=BATCH_SIZE, num_workers=0, device=device)
 
     last_loss = train(train_dataset, model, optimizer, save_path=args.save_path)
     print('lr={} gives loss={}'.format(LEARNING_RATE, last_loss))
