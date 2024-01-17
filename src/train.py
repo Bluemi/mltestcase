@@ -48,6 +48,8 @@ def train(train_dataset, net, optimizer, save_model=True):
     last_loss = None
     # for _epoch in trange(NUM_EPOCHS, ascii=True, desc='train with lr={:.2f}'.format(lr)):
     loss_function = nn.CrossEntropyLoss()
+    # loss_function = nn.MSELoss()
+    # eye = torch.eye(10)
     for epoch in range(NUM_EPOCHS):
         current_loss_sum = 0.0
         example_counter = 0
@@ -62,6 +64,7 @@ def train(train_dataset, net, optimizer, save_model=True):
             #     outputs, torch.flatten(inputs, start_dim=1), embedding, labels, beta=1.0, gamma=2.0
             # )
             predictions = net.forward_classify(inputs)
+            # one_hot_labels = eye[labels]
             loss = loss_function(predictions, labels)
             loss.backward()
             optimizer.step()

@@ -13,6 +13,7 @@ def main():
     if len(sys.argv) > 1:
         model_path = sys.argv[1]
     model = MnistAutoencoder()
+    # model.load_state_dict(torch.load('models/mnist_autoencoder_custom_loss.pth'), strict=False)
     model.load_state_dict(torch.load(model_path), strict=False)
 
     dataset = load_data('mnist', train=False, batch_size=8, num_workers=0, use_dataloader=False)
