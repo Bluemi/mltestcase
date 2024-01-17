@@ -10,7 +10,7 @@ from model import MnistAutoencoder
 
 def parse_args():
     parser = argparse.ArgumentParser(description='run embedding visualization')
-    parser.add_argument('model_path', type=str, default=MODEL_PATH, help='The model to load')
+    parser.add_argument('model_path', type=str, default=MODEL_PATH, nargs='?', help='The model to load')
 
     return parser.parse_args()
 

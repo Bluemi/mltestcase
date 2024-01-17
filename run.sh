@@ -2,7 +2,8 @@
 
 case "$1" in
 	t|train)
-		python3 src/train.py
+		shift;
+		python3 src/train.py "$@"
 		pling
 		;;
 	e|eval)
