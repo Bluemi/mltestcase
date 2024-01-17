@@ -1,4 +1,4 @@
-import sys
+import argparse
 
 import torch
 
@@ -8,13 +8,18 @@ from utils.interactive_visualizations import Vec2Img
 from model import MnistAutoencoder
 
 
+def parse_args():
+    parser = argparse.ArgumentParser(description='run embedding visualization')
+    parser.add_argument('model_path', type=str, default=MODEL_PATH, help='The model to load')
+
+    return parser.parse_args()
+
+
 def main():
-    model_path = MODEL_PATH
-    if len(sys.argv) > 1:
-        model_path = sys.argv[1]
+    args = parse_args()
+
     model = MnistAutoencoder()
-    # model.load_state_dict(torch.load('models/mnist_autoencoder_custom_loss.pth'), strict=False)
-    model.load_state_dict(torch.load(model_path), strict=False)
+    model.load_state_dict(torch.load(args.model_path), strict=False)
 
     dataset = load_data('mnist', train=False, batch_size=8, num_workers=0, use_dataloader=False)
     samples = get_examples(dataset, len(get_classes('mnist')), n=500)

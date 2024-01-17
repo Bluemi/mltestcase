@@ -1,4 +1,6 @@
+import argparse
 import time
+from typing import Optional
 
 import torchvision
 
@@ -43,7 +45,7 @@ def custom_loss_function(outputs, inputs, embedding, labels, beta=1.0, gamma=1.0
     return loss
 
 
-def train(train_dataset, net, optimizer, save_model=True):
+def train(train_dataset, net, optimizer, save_model: Optional[str] = None):
     last_loss = None
     # for _epoch in trange(NUM_EPOCHS, ascii=True, desc='train with lr={:.2f}'.format(lr)):
     loss_function = nn.CrossEntropyLoss()
@@ -74,7 +76,7 @@ def train(train_dataset, net, optimizer, save_model=True):
         print(f'Epoch {epoch+1}: {last_loss}')
 
     if save_model:
-        torch.save(net.state_dict(), MODEL_PATH)
+        torch.save(net.state_dict(), save_model)
 
     return last_loss
 
@@ -92,17 +94,35 @@ def test_model(test_dataset, net, device):
             break
 
 
+def parse_args():
+    parser = argparse.ArgumentParser(description='train model on mnist')
+    parser.add_argument(
+        'save_path', type=str, default=None,
+        help='The path where the trained model will be saved. If not specified will not save any model.'
+    )
+    parser.add_argument('--init', type=str, default=MODEL_PATH, help='The model to load as starting point')
+    parser.add_argument('--lr', type=float, default=LEARNING_RATE, help='The learning rate used for training.')
+    parser.add_argument('--wc', type=float, default=0.0015, help='The weight decay used for training.')
+
+    return parser.parse_args()
+
+
 def main():
+    args = parse_args()
+
     device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
     train_dataset = load_data('mnist', train=True, batch_size=BATCH_SIZE, num_workers=0, device=device)
 
     start_time = time.time()
-    net = MnistAutoencoder()
-    net.to(device)
+    model = MnistAutoencoder()
 
-    optimizer = optim.AdamW(net.parameters(), lr=LEARNING_RATE, weight_decay=0.0015)
+    print('loading model \"{}\"'.format(args.init))
+    model.load_state_dict(torch.load(args.init), strict=False)
+    model.to(device)
 
-    last_loss = train(train_dataset, net, optimizer, save_model=True)
+    optimizer = optim.AdamW(model.parameters(), lr=args.lr, weight_decay=args.wc)
+
+    last_loss = train(train_dataset, model, optimizer, save_model=args.save_path)
     print('lr={} gives loss={}'.format(LEARNING_RATE, last_loss))
     print(f'training took {time.time() - start_time} seconds.')
 

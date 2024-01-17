@@ -1,3 +1,6 @@
+import os
+import sys
+
 import numpy as np
 from matplotlib import pyplot as plt
 
@@ -19,6 +22,7 @@ def imshow(img):
     plt.imshow(np.transpose(np_img, (1, 2, 0)))
 
     plt.show()
+    # noinspection PyTypeChecker
     plt.gcf().canvas.mpl_connect('key_press_event', press)
     plt.waitforbuttonpress()
     plt.close()
