@@ -1,4 +1,3 @@
-import sys
 import time
 
 import torchvision
@@ -35,7 +34,7 @@ def different_loss(diffs, labels, sigma):
 def custom_loss_function(outputs, inputs, embedding, labels, beta=1.0, gamma=1.0, sigma=0.5):
     batch_size = outputs.size(0)
     diffs = embedding.reshape(batch_size, 1, EMBEDDING_SIZE) - embedding.reshape(1, batch_size, EMBEDDING_SIZE)
-    diffs = torch.sum(torch.square(diffs), axis=2)
+    diffs = torch.sum(torch.square(diffs), dim=2)
     s_loss = same_loss(diffs, labels)
     d_loss = different_loss(diffs, labels, sigma)
     mse_loss = torch.mean(torch.square(outputs - inputs))
