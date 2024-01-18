@@ -346,10 +346,16 @@ class Vec2Img(InteractiveVisualization):
         grid_tensor = torch.tensor(grid, dtype=torch.float32)
         with torch.no_grad():
             decoded_images = self.model.decode(grid_tensor)
+            labels = torch.argmax(self.model.classification_head(grid_tensor), dim=1)
 
-        for pos, image in zip(grid, decoded_images):
+        for pos, image, label in zip(grid, decoded_images, labels):
             screen_pos = self.coordinate_system.space_to_screen(pos)
-            img = tensor_to_pg_img(image.reshape(1, 28, 28), 32, normalization_mean_std=self.normalization_mean_std)
+            color = None
+            if self.show_color_mode in (0, 1):
+                color = COLORS[label]
+            img = tensor_to_pg_img(
+                image.reshape(1, 28, 28), 32, color=color, normalization_mean_std=self.normalization_mean_std
+            )
             self.screen.blit(img, tuple(screen_pos.flatten()))
 
     def handle_event(self, event: pg.event.Event):
@@ -376,8 +382,11 @@ class Vec2Img(InteractiveVisualization):
                 else:
                     self.show_color_mode = (self.show_color_mode + 1) % 3
                 self.render_needed = True
-            if event.key == pg.K_m:
-                self.render_mode = self.render_mode.next()
+            if event.key == pg.K_e:
+                if pg.key.get_mods() & pg.KMOD_SHIFT:
+                    self.render_mode = self.RenderMode.DECODING
+                else:
+                    self.render_mode = self.RenderMode.ENCODING
                 self.render_needed = True
         elif event.type in (pg.WINDOWSIZECHANGED, pg.KEYUP, pg.ACTIVEEVENT):
             self.render_needed = True
