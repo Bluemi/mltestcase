@@ -244,9 +244,7 @@ def get_raster_coordinates(min_coord, max_coord, num_points_wanted):
         return best_fitting
 
     width = max_coord - min_coord
-    # print('width: {}  max_coord: {}  min_coord: {}'.format(width, max_coord, min_coord))
     space_between_points = adapt_quotient(width / num_points_wanted)
-    # print('space_between_points:', space_between_points)
     coord_minimum = np.round(min_coord / space_between_points) * space_between_points
     coord_maximum = np.round(max_coord / space_between_points) * space_between_points + space_between_points
 
@@ -286,11 +284,12 @@ class Vec2Img(InteractiveVisualization):
         self.samples = samples
         self.normalization_mean_std = normalization_mean_std
         self.sample_positions = self.calc_sample_positions()
-        self.images = self.calc_images(color_images=False)
-        self.colored_images = self.calc_images(color_images=True)
+        self.images = self.calc_images(color_images=False, labels_from_model=False)
+        self.colored_images = self.calc_images(color_images=True, labels_from_model=False)
+        self.colored_model_images = self.calc_images(color_images=True, labels_from_model=True)
         self.coordinate_system = CoordinateSystem(self.screen.get_size())
         self.dragging = False
-        self.show_colors = True
+        self.show_color_mode = 0
         self.render_mode = Vec2Img.RenderMode.ENCODING
         self.mouse_position = np.zeros(2, dtype=int)
 
@@ -298,11 +297,13 @@ class Vec2Img(InteractiveVisualization):
         with torch.no_grad():
             return self.model.encode(self.samples[0]).numpy()
 
-    def calc_images(self, color_images=False):
+    def calc_images(self, color_images=False, labels_from_model=False):
         with torch.no_grad():
             images = []
             for img, label in zip(self.samples[0], self.samples[1]):
                 if color_images:
+                    if labels_from_model:
+                        label = torch.argmax(self.model.forward_classify(img)).item()
                     color = COLORS[label]
                     img = tensor_to_pg_img(img, 128, color, normalization_mean_std=self.normalization_mean_std)
                 else:
@@ -317,7 +318,15 @@ class Vec2Img(InteractiveVisualization):
         self.screen.fill(gray(0))
 
         if self.render_mode == Vec2Img.RenderMode.ENCODING:
-            images = self.colored_images if self.show_colors else self.images
+            if self.show_color_mode == 0:
+                images = self.colored_images
+            elif self.show_color_mode == 1:
+                images = self.colored_model_images
+            elif self.show_color_mode == 2:
+                images = self.images
+            else:
+                raise ValueError("unknown show color mode: {}".format(self.show_color_mode))
+
             for image, pos in zip(images, self.sample_positions):
                 screen_pos = self.coordinate_system.space_to_screen(pos).astype(int)
                 self.screen.blit(image, tuple(screen_pos.flatten()))
@@ -362,7 +371,10 @@ class Vec2Img(InteractiveVisualization):
             self.render_needed = True
         elif event.type == pg.KEYDOWN:
             if event.key == pg.K_c:
-                self.show_colors = not self.show_colors
+                if pg.key.get_mods() & pg.KMOD_SHIFT:
+                    self.show_color_mode = (self.show_color_mode - 1) % 3
+                else:
+                    self.show_color_mode = (self.show_color_mode + 1) % 3
                 self.render_needed = True
             if event.key == pg.K_m:
                 self.render_mode = self.render_mode.next()
