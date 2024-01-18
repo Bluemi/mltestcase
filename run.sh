@@ -7,7 +7,8 @@ case "$1" in
 		pling
 		;;
 	e|eval)
-		python3 src/eval.py
+		shift;
+		python3 src/eval.py "$@"
 		;;
 	vis)
 		shift

@@ -1,18 +1,34 @@
+import argparse
+
 import torch
 import torchvision
 
 from model import MnistAutoencoder
-from train import MODEL_PATH
 from utils.datasets import load_data, get_mean_std
 from utils import imshow, denormalize
+from utils.evaluation import model_accuracy
+
+
+def parse_args():
+    parser = argparse.ArgumentParser(description='evaluate model on mnist')
+    parser.add_argument('model_path', type=str, help='Path the model to evaluate.')
+
+    return parser.parse_args()
 
 
 def main():
-    net = MnistAutoencoder()
-    net.load_state_dict(torch.load(MODEL_PATH))
+    args = parse_args()
+    model = MnistAutoencoder()
+    model.load_state_dict(torch.load(args.model_path))
 
     dataset = load_data('mnist', train=False, batch_size=8, num_workers=0)
 
+    # show_prediction_images(dataset, model)
+    accuracy = model_accuracy(model, dataset)
+    print('accuracy: {}'.format(accuracy))
+
+
+def show_prediction_images(dataset, net):
     with torch.no_grad():
         for data, labels in dataset:
             outputs = net(data)
