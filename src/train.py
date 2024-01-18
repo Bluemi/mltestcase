@@ -3,6 +3,7 @@ import time
 from typing import Optional
 
 import torchvision
+from tqdm import trange
 
 from model import MnistAutoencoder
 from utils import imshow
@@ -41,39 +42,46 @@ def custom_loss_function(outputs, inputs, embedding, labels, beta=1.0, gamma=1.0
     d_loss = different_loss(diffs, labels, sigma)
     mse_loss = torch.mean(torch.square(outputs - inputs))
     loss = mse_loss + beta * s_loss + gamma * d_loss
-    print(f'loss={loss} mse_loss={mse_loss} s_loss={s_loss * beta}, d_loss={d_loss * gamma}')
+    # print(f'loss={loss} mse_loss={mse_loss} s_loss={s_loss * beta}, d_loss={d_loss * gamma}')
     return loss
+
+
+def calc_classifier_loss(model, inputs, labels):
+    predictions = model.forward_classify(inputs)
+    return nn.functional.cross_entropy(predictions, labels)
+
+
+def calc_autoencoder_loss(model, inputs, labels):
+    embedding = model.encode(inputs)
+    outputs = model.decode(embedding)
+
+    return custom_loss_function(
+        outputs, torch.flatten(inputs, start_dim=1), embedding, labels, beta=1.0, gamma=2.0
+    )
 
 
 def train(train_dataset, net, optimizer, save_path: Optional[str] = None):
     last_loss = None
-    # for _epoch in trange(NUM_EPOCHS, ascii=True, desc='train with lr={:.2f}'.format(lr)):
-    loss_function = nn.CrossEntropyLoss()
-    # loss_function = nn.MSELoss()
-    # eye = torch.eye(10)
-    for epoch in range(NUM_EPOCHS):
+    pbar = trange(NUM_EPOCHS, ascii=True, desc=f'l={0.0:.4f}')
+    for _epoch in pbar:
         current_loss_sum = 0.0
         example_counter = 0
         for data in train_dataset:
             inputs, labels = data
             optimizer.zero_grad()
 
-            # embedding = net.encode(inputs)
-            # outputs = net.decode(embedding)
+            autoencoder_loss = calc_autoencoder_loss(net, inputs, labels)
+            classifier_loss = calc_classifier_loss(net, inputs, labels)
+            # print(f'autoencoder_loss: {autoencoder_loss:.4f}, classifier_loss: {classifier_loss:.4f}')
+            loss = 0.2 * autoencoder_loss + classifier_loss
 
-            # loss = custom_loss_function(
-            #     outputs, torch.flatten(inputs, start_dim=1), embedding, labels, beta=1.0, gamma=2.0
-            # )
-            predictions = net.forward_classify(inputs)
-            # one_hot_labels = eye[labels]
-            loss = loss_function(predictions, labels)
             loss.backward()
             optimizer.step()
 
             current_loss_sum += loss.item()
             example_counter += 1
         last_loss = current_loss_sum / example_counter
-        print(f'Epoch {epoch+1}: {last_loss:.4f}')
+        pbar.set_description(f'l={last_loss:.4f}')
 
     if save_path:
         torch.save(net.state_dict(), save_path)
