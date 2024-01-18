@@ -115,12 +115,12 @@ def main():
     start_time = time.time()
     model = MnistAutoencoder()
 
-    print('loading model     : \"{}\"'.format(args.init))
+    print('loading model: \"{}\"'.format(args.init))
     if args.init:
         model.load_state_dict(torch.load(args.init), strict=False)
     model.to(device)
 
-    print('will save model to: \"{}\"'.format(args.save_path))
+    print('save model to: \"{}\"'.format(args.save_path))
 
     optimizer = optim.AdamW(model.parameters(), lr=args.lr, weight_decay=args.wc)
 
