@@ -68,7 +68,6 @@ class MnistAutoencoder(nn.Module):
 
         classification_layers = [
             nn.Linear(bottleneck, 10),
-            nn.Sigmoid()
         ]
         self.classification_head = nn.Sequential(*classification_layers)
 
