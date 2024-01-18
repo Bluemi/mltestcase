@@ -226,7 +226,7 @@ def tensor_to_pg_img(image: torch.Tensor, alpha_threshold=0, color=None, normali
 
 def get_raster_coordinates(min_coord, max_coord, num_points_wanted):
     def adapt_quotient(quotient):
-        target_dividends = [1, 2.5, 5, 10]
+        target_dividends = np.exp(np.linspace(0, np.log(10), 10))
         if quotient <= 0:
             raise ValueError('Invalid quotient: {}'.format(quotient))
         numb_ten_potency = 0
@@ -237,11 +237,12 @@ def get_raster_coordinates(min_coord, max_coord, num_points_wanted):
             quotient *= 10
             numb_ten_potency -= 1
 
-        diffs = [abs(quotient - target) for target in target_dividends]
+        diffs = np.abs(quotient - target_dividends)
         index = np.argmin(diffs)
         best_fitting = target_dividends[index] * (10 ** numb_ten_potency)
 
         return best_fitting
+
     width = max_coord - min_coord
     # print('width: {}  max_coord: {}  min_coord: {}'.format(width, max_coord, min_coord))
     space_between_points = adapt_quotient(width / num_points_wanted)
@@ -328,8 +329,8 @@ class Vec2Img(InteractiveVisualization):
         extreme_points_screen = np.array([[0, 0], screen_size])
         extreme_points_space = self.coordinate_system.screen_to_space(extreme_points_screen.T).T
 
-        y_raster = get_raster_coordinates(extreme_points_space[1, 1], extreme_points_space[0, 1], screen_size[1] // 30)
-        x_raster = get_raster_coordinates(extreme_points_space[0, 0], extreme_points_space[1, 0], screen_size[0] // 30)
+        y_raster = get_raster_coordinates(extreme_points_space[1, 1], extreme_points_space[0, 1], screen_size[1] // 40)
+        x_raster = get_raster_coordinates(extreme_points_space[0, 0], extreme_points_space[1, 0], screen_size[0] // 40)
         grid = np.meshgrid(x_raster, y_raster, indexing='xy')
         grid = np.stack(grid, axis=2).reshape(-1, 2)
 
