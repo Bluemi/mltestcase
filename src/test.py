@@ -5,6 +5,7 @@ from utils.datasets import load_data
 def main():
     dataset = load_data('mnist', train=False, num_workers=0, use_dataloader=False)
     img, label = next(iter(dataset))
+    img = img.reshape(1, *img.shape)
     # img = torch.rand(1, 28, 28)
     # normed_img = img - torch.mean(img)
     result = fourier_transform_2d(img)

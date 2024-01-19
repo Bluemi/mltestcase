@@ -48,8 +48,8 @@ def denormalize(data, mean, std):
 
 
 def fourier_transform_2d(img):
-    result = torch.fft.rfft2(img)[:, :, :-1]
-    return torch.concat([result.real, result.imag], dim=2)
+    result = torch.fft.rfft2(img)[..., :-1]
+    return torch.concat([result.real, result.imag], dim=-1)
 
 
 def inv_fourier_transform_2d(img):
