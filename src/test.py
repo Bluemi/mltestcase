@@ -1,5 +1,6 @@
-from utils import fourier_transform_2d, describe, inv_fourier_transform_2d
+from utils import describe, cosine_transform_2d, inv_cosine_transform_2d
 from utils.datasets import load_data
+
 
 
 def main():
@@ -8,17 +9,16 @@ def main():
     img = img.reshape(1, *img.shape)
     # img = torch.rand(1, 28, 28)
     # normed_img = img - torch.mean(img)
-    result = fourier_transform_2d(img)
+    result = cosine_transform_2d(img)
     # describe(result[:, 0, :], 'result first column')
     # describe(result[:, :, 0], 'result first row')
     # result += torch.rand_like(result) * 0.1
-    back = inv_fourier_transform_2d(result)
+    back = inv_cosine_transform_2d(result)
 
     diff = img - back
 
     describe(img, 'img')
-    # describe(result, 'result')
-    describe(back, 'back')
+    describe(result, 'result')
 
     describe(diff, 'diff')
 

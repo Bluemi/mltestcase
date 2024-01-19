@@ -9,7 +9,7 @@ from torch import nn
 from tqdm import trange
 
 from model import MnistAutoencoder
-from utils import imshow, fourier_transform_2d
+from utils import imshow, fourier_transform_2d, cosine_transform_2d
 from utils.datasets import load_data
 from utils.loss_functions import custom_loss_function
 
@@ -34,7 +34,7 @@ def calc_autoencoder_loss(model, inputs, labels):
     )
 
 
-def train(train_dataset, model, optimizer, save_path: Optional[str] = None, use_fft=False):
+def train(train_dataset, model, optimizer, device, save_path: Optional[str] = None, use_ft=None):
     last_loss = None
     pbar = trange(NUM_EPOCHS, ascii=True, desc=f'l={0.0:.4f}')
     for _epoch in pbar:
@@ -44,16 +44,21 @@ def train(train_dataset, model, optimizer, save_path: Optional[str] = None, use_
             inputs, labels = data
             optimizer.zero_grad()
 
-            if use_fft:
+            if use_ft == 'fft':
                 with torch.no_grad():
                     inputs = fourier_transform_2d(inputs)
+            elif use_ft == 'dct':
+                with torch.no_grad():
+                    inputs = cosine_transform_2d(inputs.cpu()).to(device)
 
             autoencoder_loss = calc_autoencoder_loss(model, inputs, labels)
             classifier_loss = calc_classifier_loss(model, inputs, labels)
             # print(f'ae loss: {autoencoder_loss:.4f}  cf loss: {classifier_loss:.4f}')
             autoencoder_coefficient = 0.2
-            if use_fft:
+            if use_ft == 'fft':
                 autoencoder_coefficient = 0.004
+            elif use_ft == 'dct':
+                autoencoder_coefficient = 0.02
             loss = autoencoder_coefficient * autoencoder_loss + classifier_loss
 
             loss.backward()
@@ -92,7 +97,10 @@ def parse_args():
     parser.add_argument('--init', type=str, default=None, help='The model to load as starting point')
     parser.add_argument('--lr', type=float, default=LEARNING_RATE, help='The learning rate used for training.')
     parser.add_argument('--wc', type=float, default=0.0015, help='The weight decay used for training.')
-    parser.add_argument('--fft', action='store_true', help='If set, model is trained on fft output.')
+    parser.add_argument(
+        '--ft', default=None, choices=['fft', 'dct'],
+        help='Either "fft" or "dct". If set, model is trained on fft/dct output.'
+    )
 
     return parser.parse_args()
 
@@ -116,7 +124,7 @@ def main():
 
     train_dataset = load_data('mnist', train=True, batch_size=BATCH_SIZE, num_workers=0, device=device)
 
-    last_loss = train(train_dataset, model, optimizer, save_path=args.save_path, use_fft=args.fft)
+    last_loss = train(train_dataset, model, optimizer, device, save_path=args.save_path, use_ft=args.ft)
 
     print('lr={} gives loss={}'.format(LEARNING_RATE, last_loss))
     print(f'training took {time.time() - start_time} seconds.')

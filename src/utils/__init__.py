@@ -1,4 +1,5 @@
 import numpy as np
+import scipy
 import torch
 from matplotlib import pyplot as plt
 
@@ -58,3 +59,11 @@ def inv_fourier_transform_2d(img):
     padding = torch.zeros(size=(*input_tensor.shape[:-1],1), dtype=torch.cfloat)
     input_tensor = torch.concat([input_tensor, padding], dim=-1)
     return torch.fft.irfft2(input_tensor)
+
+
+def cosine_transform_2d(img):
+    return torch.tensor(scipy.fft.dctn(img.numpy(), norm='ortho', axes=(-2, -1)))
+
+
+def inv_cosine_transform_2d(img):
+    return torch.tensor(scipy.fft.idctn(img.numpy(), norm='ortho', axes=(-2, -1)))
