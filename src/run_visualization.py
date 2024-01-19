@@ -22,8 +22,10 @@ def parse_args():
 def main():
     args = parse_args()
 
+    device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
+
     model = MnistAutoencoder()
-    model.load_state_dict(torch.load(args.model_path), strict=False)
+    model.load_state_dict(torch.load(args.model_path, map_location=device), strict=False)
 
     dataset = load_data('mnist', train=False, batch_size=8, num_workers=0, use_dataloader=False)
     samples = get_examples(dataset, len(get_classes('mnist')), n=500)
