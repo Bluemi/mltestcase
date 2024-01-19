@@ -30,6 +30,13 @@ def get_classes(ds_name):
     }[ds_name]
 
 
+def get_image_shapes(ds_name):
+    return {
+        'mnist': (1, 28, 28),
+        'cifar10': (3, 32, 32),
+    }[ds_name]
+
+
 def get_data_dir():
     possible = [p for p in POSSIBLE_DATA_DIR_LOCATIONS if os.path.isdir(p)]
     if not possible:

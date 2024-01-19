@@ -23,9 +23,10 @@ def main():
 
     dataset = load_data('mnist', train=False, batch_size=8, num_workers=0)
 
-    # show_prediction_images(dataset, model)
     accuracy = model_accuracy(model, dataset)
     print('accuracy: {}'.format(accuracy))
+
+    show_prediction_images(dataset, model)
 
 
 def show_prediction_images(dataset, net):
