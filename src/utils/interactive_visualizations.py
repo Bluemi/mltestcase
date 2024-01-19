@@ -7,7 +7,8 @@ import numpy as np
 import pygame as pg
 import torch
 
-from utils import denormalize, fourier_transform_2d, inv_fourier_transform_2d
+from utils import denormalize, fourier_transform_2d, inv_fourier_transform_2d, cosine_transform_2d, \
+    inv_cosine_transform_2d
 
 DEFAULT_SCREEN_SIZE = (800, 600)
 COLORS = np.array([
@@ -264,7 +265,7 @@ class Vec2Img(InteractiveVisualization):
 
     def __init__(
             self, model, samples: Tuple[torch.Tensor, torch.Tensor], screen_size: None | Tuple[int, int] = None,
-            framerate: int = 60, normalization_mean_std=(0, 1), use_fft=False,
+            framerate: int = 60, normalization_mean_std=(0, 1), use_ft=False,
     ):
         """
 
@@ -278,13 +279,13 @@ class Vec2Img(InteractiveVisualization):
         :param screen_size: The start screen size of the pygame window
         :param framerate: The framerate that is used to render
         :param normalization_mean_std: Tuple of mean and std used to denormalize the images.
-        :param use_fft: Whether to apply fft on images before feeding to the model
+        :param use_ft: Whether to apply fft on images before feeding to the model
         """
         super().__init__(screen_size=screen_size, framerate=framerate)
         self.model = model
         self.samples = samples
         self.normalization_mean_std = normalization_mean_std
-        self.use_fft = use_fft
+        self.use_ft = use_ft
         self.sample_positions = self.calc_sample_positions()
         self.images = self.calc_images(color_images=False, labels_from_model=False)
         self.colored_images = self.calc_images(color_images=True, labels_from_model=False)
@@ -298,8 +299,11 @@ class Vec2Img(InteractiveVisualization):
     def calc_sample_positions(self):
         with torch.no_grad():
             inputs = self.samples[0]
-            if self.use_fft:
+            if self.use_ft == 'fft':
                 inputs = fourier_transform_2d(self.samples[0])
+            if self.use_ft == 'dct':
+                inputs = cosine_transform_2d(self.samples[0])
+
             return self.model.encode(inputs).numpy()
 
     def calc_images(self, color_images=False, labels_from_model=False):
@@ -309,8 +313,10 @@ class Vec2Img(InteractiveVisualization):
                 if color_images:
                     if labels_from_model:
                         model_input = img
-                        if self.use_fft:
+                        if self.use_ft == 'fft':
                             model_input = fourier_transform_2d(img)
+                        if self.use_ft == 'dct':
+                            model_input = cosine_transform_2d(img)
                         label = torch.argmax(self.model.forward_classify(model_input)).item()
                     color = COLORS[label]
                     img = tensor_to_pg_img(img, 128, color, normalization_mean_std=self.normalization_mean_std)
@@ -354,8 +360,10 @@ class Vec2Img(InteractiveVisualization):
         grid_tensor = torch.tensor(grid, dtype=torch.float32)
         with torch.no_grad():
             decoded_images = self.model.decode(grid_tensor).reshape(-1, 1, 28, 28)
-            if self.use_fft:
+            if self.use_ft == 'fft':
                 decoded_images = inv_fourier_transform_2d(decoded_images)
+            elif self.use_ft == 'dct':
+                decoded_images = inv_cosine_transform_2d(decoded_images)
             labels = torch.argmax(self.model.classification_head(grid_tensor), dim=1)
 
         for pos, image, label in zip(grid, decoded_images, labels):

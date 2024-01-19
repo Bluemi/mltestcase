@@ -11,7 +11,10 @@ from model import MnistAutoencoder
 def parse_args():
     parser = argparse.ArgumentParser(description='run embedding visualization')
     parser.add_argument('model_path', type=str, default=MODEL_PATH, nargs='?', help='The model to load')
-    parser.add_argument('--fft', action='store_true', help='If set, model is evaluated on fft output.')
+    parser.add_argument(
+        '--ft', default=None, choices=['fft', 'dct'],
+        help='Either "fft" or "dct". If set, model is trained on fft/dct output.'
+    )
 
     return parser.parse_args()
 
@@ -26,7 +29,7 @@ def main():
     samples = get_examples(dataset, len(get_classes('mnist')), n=500)
 
     normalization_mean_std = get_mean_std('mnist')
-    window = Vec2Img(model, samples, normalization_mean_std=normalization_mean_std, use_fft=args.fft)
+    window = Vec2Img(model, samples, normalization_mean_std=normalization_mean_std, use_ft=args.ft)
     window.run()
 
 
