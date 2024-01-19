@@ -17,7 +17,6 @@ case "$1" in
 	te|test)
 		shift;
 		python3 src/test.py "$@"
-		pling
 		;;
 	d)
 		det -m "$DET_MASTER" -u "$DET_USER" experiment create ./configs/default.yaml ./src
