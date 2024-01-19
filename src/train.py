@@ -50,7 +50,11 @@ def train(train_dataset, model, optimizer, save_path: Optional[str] = None, use_
 
             autoencoder_loss = calc_autoencoder_loss(model, inputs, labels)
             classifier_loss = calc_classifier_loss(model, inputs, labels)
-            loss = 0.2 * autoencoder_loss + classifier_loss
+            # print(f'ae loss: {autoencoder_loss:.4f}  cf loss: {classifier_loss:.4f}')
+            autoencoder_coefficient = 0.2
+            if use_fft:
+                autoencoder_coefficient = 0.004
+            loss = autoencoder_coefficient * autoencoder_loss + classifier_loss
 
             loss.backward()
             optimizer.step()
@@ -113,6 +117,7 @@ def main():
     train_dataset = load_data('mnist', train=True, batch_size=BATCH_SIZE, num_workers=0, device=device)
 
     last_loss = train(train_dataset, model, optimizer, save_path=args.save_path, use_fft=args.fft)
+
     print('lr={} gives loss={}'.format(LEARNING_RATE, last_loss))
     print(f'training took {time.time() - start_time} seconds.')
 
