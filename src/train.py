@@ -3,47 +3,21 @@ import time
 from typing import Optional
 
 import torchvision
+import torch
+import torch.optim as optim
+from torch import nn
 from tqdm import trange
 
 from model import MnistAutoencoder
 from utils import imshow
 from utils.datasets import load_data
-import torch
-import torch.optim as optim
-from torch import nn
-
+from utils.loss_functions import custom_loss_function
 
 BATCH_SIZE = 512
 NUM_EPOCHS = 150
 EMBEDDING_SIZE = 2
 MODEL_PATH = 'models/mnist_classifier.pth'
 LEARNING_RATE = 0.007
-
-
-def same_loss(diffs, labels: torch.Tensor):
-    same_mask = torch.eq(labels.reshape(-1, 1), labels.reshape(1, -1))
-    masked_diff = same_mask * diffs
-    s_loss = torch.sum(masked_diff) / torch.sum(same_mask)
-    return s_loss
-
-
-def different_loss(diffs, labels, sigma):
-    different_mask = torch.ne(labels.reshape(1, -1), labels.reshape(-1, 1))
-    masked_diff = torch.exp(-different_mask.to(int) * diffs * sigma)
-    d_loss = torch.sum(masked_diff) / torch.sum(different_mask)
-    return d_loss
-
-
-def custom_loss_function(outputs, inputs, embedding, labels, beta=1.0, gamma=1.0, sigma=0.5):
-    batch_size = outputs.size(0)
-    diffs = embedding.reshape(batch_size, 1, EMBEDDING_SIZE) - embedding.reshape(1, batch_size, EMBEDDING_SIZE)
-    diffs = torch.sum(torch.square(diffs), dim=2)
-    s_loss = same_loss(diffs, labels)
-    d_loss = different_loss(diffs, labels, sigma)
-    mse_loss = torch.mean(torch.square(outputs - inputs))
-    loss = mse_loss + beta * s_loss + gamma * d_loss
-    # print(f'loss={loss} mse_loss={mse_loss} s_loss={s_loss * beta}, d_loss={d_loss * gamma}')
-    return loss
 
 
 def calc_classifier_loss(model, inputs, labels):
@@ -72,7 +46,6 @@ def train(train_dataset, net, optimizer, save_path: Optional[str] = None):
 
             autoencoder_loss = calc_autoencoder_loss(net, inputs, labels)
             classifier_loss = calc_classifier_loss(net, inputs, labels)
-            # print(f'autoencoder_loss: {autoencoder_loss:.4f}, classifier_loss: {classifier_loss:.4f}')
             loss = 0.2 * autoencoder_loss + classifier_loss
 
             loss.backward()
@@ -121,8 +94,8 @@ def main():
     device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
 
     start_time = time.time()
-    model = MnistAutoencoder()
 
+    model = MnistAutoencoder()
     print('loading model: \"{}\"'.format(args.init))
     if args.init:
         model.load_state_dict(torch.load(args.init), strict=False)
