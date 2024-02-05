@@ -91,9 +91,6 @@ class MnistAutoencoder(nn.Module):
         super().__init__()
         self.training = training
 
-        layer_type = CustomLinearLayer
-        # layer_type = nn.Linear
-
         bottleneck = 2
         middle = 100
 
@@ -109,24 +106,23 @@ class MnistAutoencoder(nn.Module):
             raise ValueError('Unknown activation function: {}'.format(activation_func))
 
         encoder_layers = [
-            # layer_type(28 * 28, middle),
-            BlobLayer(middle, image_size=(28, 28)),
+            nn.Linear(28 * 28, middle),
             activation_function(),
-            layer_type(middle, bottleneck)
+            nn.Linear(middle, bottleneck)
         ]
         if use_activation_for_z:
             encoder_layers.append(activation_function())
         self.encoder = nn.Sequential(*encoder_layers)
 
         decoder_layers = [
-            layer_type(bottleneck, middle),
+            nn.Linear(bottleneck, middle),
             activation_function(),
-            layer_type(middle, 28 * 28)
+            nn.Linear(middle, 28 * 28)
         ]
         self.decoder = nn.Sequential(*decoder_layers)
 
         classification_layers = [
-            layer_type(bottleneck, 10),
+            nn.Linear(bottleneck, 10),
         ]
         self.classification_head = nn.Sequential(*classification_layers)
 
