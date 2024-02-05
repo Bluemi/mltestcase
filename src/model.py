@@ -1,3 +1,4 @@
+import numpy as np
 import torch
 import torch.nn as nn
 import torch.nn.functional as functional
@@ -31,10 +32,67 @@ def noop(x):
     return x
 
 
+class CustomLinearLayer(nn.Module):
+    def __init__(self, in_features, out_features, use_bias=True):
+        super().__init__()
+        self._in_features = in_features
+        self._out_features = out_features
+        self.weights = nn.Parameter(torch.Tensor(in_features, out_features))
+        self.bias = None
+        if use_bias:
+            self.bias = nn.Parameter(torch.Tensor(out_features))
+        self.reset_parameters()
+
+    def reset_parameters(self):
+        nn.init.kaiming_uniform_(self.weights, a=np.sqrt(self._in_features))
+        if self.bias is not None:
+            # noinspection PyProtectedMember
+            fan_in, _ = nn.init._calculate_fan_in_and_fan_out(self.weights)
+            bound = 1 / np.sqrt(fan_in)
+            nn.init.uniform_(self.bias, -bound, bound)
+
+    def forward(self, x):
+        x = torch.matmul(x, self.weights)
+        if self.bias is not None:
+            x = x + self.bias
+        return x
+
+
+class BlobLayer(nn.Module):
+    def __init__(self, num_curves, image_size, tau=0.01):
+        super().__init__()
+        self.image_size = image_size
+        self.tau = tau
+        self.positions = nn.Parameter(torch.normal(0.5, 0.3, size=(num_curves, 2)))
+        self.sigmas = nn.Parameter(torch.normal(0, 0.02, size=(num_curves,)))
+
+        y_axis = torch.linspace(0, 1, image_size[0] + 1)[:-1]
+        x_axis = torch.linspace(0, 1, image_size[1] + 1)[:-1]
+        ys, xs = torch.meshgrid(y_axis, x_axis, indexing='ij')
+        self.register_buffer('ys', ys, persistent=False)
+        self.register_buffer('xs', xs, persistent=False)
+
+    def _calc_curves(self):
+        factor = 1 / (2 * torch.pi * self.sigmas[None, None, :] ** 2 + self.tau)
+
+        # shape of grid: (IMAGE_SIZE_Y, IMAGE_SIZE_X, N_CURVES)
+        grid = (self.xs[:, :, None] - self.positions[None, None, :, 1]) ** 2 + (self.ys[:, :, None] - self.positions[None, None, :, 0]) ** 2
+        second_part = torch.exp(- grid / (2 * self.sigmas[None, None, :] ** 2 + self.tau))
+        return factor * second_part
+
+    def forward(self, x):
+        x = x.reshape(-1, *self.image_size)
+        curves = self._calc_curves()
+        prod = curves[None] * x[..., None]
+        return torch.sum(prod, dim=(1, 2))
+
 class MnistAutoencoder(nn.Module):
     def __init__(self, activation_func: str = 'sigmoid', use_activation_for_z=False, training=False):
         super().__init__()
         self.training = training
+
+        layer_type = CustomLinearLayer
+        # layer_type = nn.Linear
 
         bottleneck = 2
         middle = 100
@@ -51,23 +109,24 @@ class MnistAutoencoder(nn.Module):
             raise ValueError('Unknown activation function: {}'.format(activation_func))
 
         encoder_layers = [
-            nn.Linear(28 * 28, middle),
+            # layer_type(28 * 28, middle),
+            BlobLayer(middle, image_size=(28, 28)),
             activation_function(),
-            nn.Linear(middle, bottleneck)
+            layer_type(middle, bottleneck)
         ]
         if use_activation_for_z:
             encoder_layers.append(activation_function())
         self.encoder = nn.Sequential(*encoder_layers)
 
         decoder_layers = [
-            nn.Linear(bottleneck, middle),
+            layer_type(bottleneck, middle),
             activation_function(),
-            nn.Linear(middle, 28 * 28)
+            layer_type(middle, 28 * 28)
         ]
         self.decoder = nn.Sequential(*decoder_layers)
 
         classification_layers = [
-            nn.Linear(bottleneck, 10),
+            layer_type(bottleneck, 10),
         ]
         self.classification_head = nn.Sequential(*classification_layers)
 

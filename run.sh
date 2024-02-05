@@ -21,6 +21,9 @@ case "$1" in
 	d)
 		det -m "$DET_MASTER" -u "$DET_USER" experiment create ./configs/default.yaml ./src
 		;;
+	j|jupyter)
+		jupyter lab
+		;;
 	*)
 		echo "choose train or eval"
 		;;

@@ -101,6 +101,7 @@ def parse_args():
         '--ft', default=None, choices=['fft', 'dct'],
         help='Either "fft" or "dct". If set, model is trained on fft/dct output.'
     )
+    parser.add_argument('--epochs', '-e', type=int, default=NUM_EPOCHS, help=f'The number of epochs. Defaults to {NUM_EPOCHS}.')
 
     return parser.parse_args()
 
