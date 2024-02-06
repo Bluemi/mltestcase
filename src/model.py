@@ -76,6 +76,7 @@ class BlobLayer(nn.Module):
 
     def calc_curves(self):
         factor = 1 / (2 * torch.pi * self.sigmas[None, None, :] ** 2 + self.tau)
+        # factor = torch.exp(-2.0 * self.sigmas[None, None, :] + 1)  # alternative but worse
 
         # shape of grid: (IMAGE_SIZE_Y, IMAGE_SIZE_X, N_CURVES)
         grid = (self.xs[:, :, None] - self.positions[None, None, :, 1]) ** 2 + (self.ys[:, :, None] - self.positions[None, None, :, 0]) ** 2
