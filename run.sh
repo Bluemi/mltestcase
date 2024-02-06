@@ -10,6 +10,10 @@ case "$1" in
 		shift;
 		python3 src/eval.py "$@"
 		;;
+	im|inspect)
+		shift;
+		python3 src/inspect_model.py "$@"
+		;;
 	vis)
 		shift
 		python3 src/run_visualization.py "$@"

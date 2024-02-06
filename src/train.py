@@ -2,14 +2,13 @@ import argparse
 import time
 from typing import Optional
 
-import torchvision
 import torch
 import torch.optim as optim
 from torch import nn
 from tqdm import trange
 
 from model import MnistAutoencoder
-from utils import imshow, fourier_transform_2d, cosine_transform_2d
+from utils import fourier_transform_2d, cosine_transform_2d
 from utils.datasets import load_data
 from utils.loss_functions import custom_loss_function
 
@@ -53,7 +52,6 @@ def train(train_dataset, model, optimizer, device, save_path: Optional[str] = No
 
             autoencoder_loss = calc_autoencoder_loss(model, inputs, labels)
             classifier_loss = calc_classifier_loss(model, inputs, labels)
-            # print(f'ae loss: {autoencoder_loss:.4f}  cf loss: {classifier_loss:.4f}')
             autoencoder_coefficient = 0.2
             if use_ft == 'fft':
                 autoencoder_coefficient = 0.004
@@ -75,19 +73,6 @@ def train(train_dataset, model, optimizer, device, save_path: Optional[str] = No
     return last_loss
 
 
-def test_model(test_dataset, net, device):
-    with torch.no_grad():
-        for data in test_dataset:
-            images, labels = data[0].to(device), data[1].to(device)
-            # calculate outputs by running images through the network
-            outputs = net(images)
-            outputs = torch.reshape(outputs, (-1, 1, 28, 28)).cpu()
-
-            imshow(torchvision.utils.make_grid(outputs))
-
-            break
-
-
 def parse_args():
     parser = argparse.ArgumentParser(description='train model on mnist')
     parser.add_argument(
@@ -101,6 +86,7 @@ def parse_args():
         '--ft', default=None, choices=['fft', 'dct'],
         help='Either "fft" or "dct". If set, model is trained on fft/dct output.'
     )
+    parser.add_argument('--blob-layer', action='store_true', help='Use blob layer as first layer. Otherwise use Linear layer.')
     parser.add_argument('--epochs', '-e', type=int, default=NUM_EPOCHS, help=f'The number of epochs. Defaults to {NUM_EPOCHS}.')
 
     return parser.parse_args()
@@ -113,7 +99,7 @@ def main():
 
     start_time = time.time()
 
-    model = MnistAutoencoder()
+    model = MnistAutoencoder(use_blob_layer=args.blob_layer)
     print('loading model: \"{}\"'.format(args.init))
     if args.init:
         model.load_state_dict(torch.load(args.init), strict=False)

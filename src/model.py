@@ -72,7 +72,7 @@ class BlobLayer(nn.Module):
         self.register_buffer('ys', ys, persistent=False)
         self.register_buffer('xs', xs, persistent=False)
 
-    def _calc_curves(self):
+    def calc_curves(self):
         factor = 1 / (2 * torch.pi * self.sigmas[None, None, :] ** 2 + self.tau)
 
         # shape of grid: (IMAGE_SIZE_Y, IMAGE_SIZE_X, N_CURVES)
@@ -82,12 +82,12 @@ class BlobLayer(nn.Module):
 
     def forward(self, x):
         x = x.reshape(-1, *self.image_size)
-        curves = self._calc_curves()
+        curves = self.calc_curves()
         prod = curves[None] * x[..., None]
         return torch.sum(prod, dim=(1, 2))
 
 class MnistAutoencoder(nn.Module):
-    def __init__(self, activation_func: str = 'sigmoid', use_activation_for_z=False, training=False):
+    def __init__(self, activation_func: str = 'sigmoid', use_activation_for_z=False, use_blob_layer=False, training=False):
         super().__init__()
         self.training = training
 
@@ -105,8 +105,13 @@ class MnistAutoencoder(nn.Module):
         else:
             raise ValueError('Unknown activation function: {}'.format(activation_func))
 
+        if use_blob_layer:
+            first_layer = BlobLayer(middle, image_size=(28, 28))
+        else:
+            first_layer = nn.Linear(28 * 28, middle)
+
         encoder_layers = [
-            nn.Linear(28 * 28, middle),
+            first_layer,
             activation_function(),
             nn.Linear(middle, bottleneck)
         ]

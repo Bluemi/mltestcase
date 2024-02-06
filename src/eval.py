@@ -5,7 +5,8 @@ import torchvision
 
 from model import MnistAutoencoder
 from utils.datasets import load_data, get_mean_std
-from utils import imshow, denormalize, fourier_transform_2d, inv_fourier_transform_2d, cosine_transform_2d, \
+from utils.plotting import imshow
+from utils import denormalize, fourier_transform_2d, inv_fourier_transform_2d, cosine_transform_2d, \
     inv_cosine_transform_2d
 from utils.evaluation import model_accuracy
 
