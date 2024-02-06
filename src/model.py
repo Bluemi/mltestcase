@@ -62,9 +62,11 @@ class BlobLayer(nn.Module):
     def __init__(self, num_curves, image_size, tau=0.01):
         super().__init__()
         self.image_size = image_size
+        self.num_pixels = float(np.prod(self.image_size))
         self.tau = tau
         self.positions = nn.Parameter(torch.normal(0.5, 0.3, size=(num_curves, 2)))
         self.sigmas = nn.Parameter(torch.normal(0, 0.02, size=(num_curves,)))
+        self.curve_weights = nn.Parameter(torch.normal(0, 0.2, size=(1, 1, num_curves)))
 
         y_axis = torch.linspace(0, 1, image_size[0] + 1)[:-1]
         x_axis = torch.linspace(0, 1, image_size[1] + 1)[:-1]
@@ -78,13 +80,14 @@ class BlobLayer(nn.Module):
         # shape of grid: (IMAGE_SIZE_Y, IMAGE_SIZE_X, N_CURVES)
         grid = (self.xs[:, :, None] - self.positions[None, None, :, 1]) ** 2 + (self.ys[:, :, None] - self.positions[None, None, :, 0]) ** 2
         second_part = torch.exp(- grid / (2 * self.sigmas[None, None, :] ** 2 + self.tau))
-        return factor * second_part
+        return factor * second_part * self.curve_weights
 
     def forward(self, x):
         x = x.reshape(-1, *self.image_size)
         curves = self.calc_curves()
         prod = curves[None] * x[..., None]
-        return torch.sum(prod, dim=(1, 2)) / np.prod(self.image_size)
+        return torch.sum(prod, dim=(1, 2)) / self.num_pixels
+
 
 class MnistAutoencoder(nn.Module):
     def __init__(self, activation_func: str = 'sigmoid', use_activation_for_z=False, use_blob_layer=False, training=False):
