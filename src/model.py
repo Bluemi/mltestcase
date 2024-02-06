@@ -59,11 +59,12 @@ class CustomLinearLayer(nn.Module):
 
 
 class BlobLayer(nn.Module):
-    def __init__(self, num_curves, image_size, epsilon=0.001):
+    def __init__(self, num_curves, image_size, epsilon=0.001, cap=2000):
         super().__init__()
         self.image_size = image_size
         self.num_pixels = float(np.prod(self.image_size))
         self.epsilon = epsilon
+        self.cap = cap
         self.positions = nn.Parameter(torch.normal(0.5, 0.3, size=(1, 1, num_curves, 2)))
         self.sigmas = nn.Parameter(torch.normal(0, 0.02, size=(1, 1, num_curves)))
         self.curve_weights = nn.Parameter(torch.normal(0, 0.2, size=(1, 1, num_curves)))
@@ -81,7 +82,8 @@ class BlobLayer(nn.Module):
         # shape of grid: (IMAGE_SIZE_Y, IMAGE_SIZE_X, N_CURVES)
         grid = (self.xs[:, :, None] - self.positions[..., 1]) ** 2 + (self.ys[:, :, None] - self.positions[..., 0]) ** 2
         second_part = torch.exp(- grid / (2 * self.sigmas ** 2 + self.epsilon))
-        return factor * second_part * self.curve_weights
+        curves = factor * second_part * self.curve_weights
+        return torch.clamp(curves, -self.cap, self.cap)
 
     def forward(self, x):
         x = x.reshape(-1, *self.image_size)
