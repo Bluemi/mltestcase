@@ -64,8 +64,8 @@ class BlobLayer(nn.Module):
         self.image_size = image_size
         self.num_pixels = float(np.prod(self.image_size))
         self.tau = tau
-        self.positions = nn.Parameter(torch.normal(0.5, 0.3, size=(num_curves, 2)))
-        self.sigmas = nn.Parameter(torch.normal(0, 0.02, size=(num_curves,)))
+        self.positions = nn.Parameter(torch.normal(0.5, 0.3, size=(1, 1, num_curves, 2)))
+        self.sigmas = nn.Parameter(torch.normal(0, 0.02, size=(1, 1, num_curves)))
         self.curve_weights = nn.Parameter(torch.normal(0, 0.2, size=(1, 1, num_curves)))
 
         y_axis = torch.linspace(0, 1, image_size[0] + 1)[:-1]
@@ -75,12 +75,12 @@ class BlobLayer(nn.Module):
         self.register_buffer('xs', xs, persistent=False)
 
     def calc_curves(self):
-        factor = 1 / (2 * torch.pi * self.sigmas[None, None, :] ** 2 + self.tau)
-        # factor = torch.exp(-2.0 * self.sigmas[None, None, :] + 1)  # alternative but worse
+        factor = 1 / (2 * torch.pi * self.sigmas ** 2 + self.tau)
+        # factor = torch.exp(-2.0 * self.sigmas + 1)  # alternative but worse
 
         # shape of grid: (IMAGE_SIZE_Y, IMAGE_SIZE_X, N_CURVES)
-        grid = (self.xs[:, :, None] - self.positions[None, None, :, 1]) ** 2 + (self.ys[:, :, None] - self.positions[None, None, :, 0]) ** 2
-        second_part = torch.exp(- grid / (2 * self.sigmas[None, None, :] ** 2 + self.tau))
+        grid = (self.xs[:, :, None] - self.positions[..., 1]) ** 2 + (self.ys[:, :, None] - self.positions[..., 0]) ** 2
+        second_part = torch.exp(- grid / (2 * self.sigmas ** 2 + self.tau))
         return factor * second_part * self.curve_weights
 
     def forward(self, x):

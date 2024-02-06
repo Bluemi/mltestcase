@@ -5,6 +5,7 @@ import torchvision.utils
 from torch import nn
 
 from model import MnistAutoencoder, BlobLayer
+from utils import describe
 from utils.plotting import plot_3d_tensor, imshow
 
 
@@ -19,6 +20,10 @@ def parse_args():
 def inspect_blob_layer(blob_layer):
     curves = blob_layer.calc_curves()
     curves = torch.moveaxis(curves, 2, 0).detach().numpy()
+    describe(blob_layer.sigmas, 'sigmas')
+    describe(blob_layer.curve_weights, 'curve_weights')
+    describe(blob_layer.positions, 'positions')
+
     for curve in curves:
         if plot_3d_tensor(curve) == 'escape':
             break

@@ -15,6 +15,7 @@ def parse_args():
         '--ft', default=None, choices=['fft', 'dct'],
         help='Either "fft" or "dct". If set, model is trained on fft/dct output.'
     )
+    parser.add_argument('--blob-layer', action='store_true', help='Use blob layer as first layer. Otherwise use Linear layer.')
 
     return parser.parse_args()
 
@@ -24,7 +25,7 @@ def main():
 
     device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
 
-    model = MnistAutoencoder()
+    model = MnistAutoencoder(use_blob_layer=args.blob_layer)
     model.load_state_dict(torch.load(args.model_path, map_location=device), strict=False)
 
     dataset = load_data('mnist', train=False, batch_size=8, num_workers=0, use_dataloader=False)
