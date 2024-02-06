@@ -84,7 +84,7 @@ class BlobLayer(nn.Module):
         x = x.reshape(-1, *self.image_size)
         curves = self.calc_curves()
         prod = curves[None] * x[..., None]
-        return torch.sum(prod, dim=(1, 2))
+        return torch.sum(prod, dim=(1, 2)) / np.prod(self.image_size)
 
 class MnistAutoencoder(nn.Module):
     def __init__(self, activation_func: str = 'sigmoid', use_activation_for_z=False, use_blob_layer=False, training=False):
