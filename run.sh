@@ -18,6 +18,10 @@ case "$1" in
 		shift
 		python3 src/run_visualization.py "$@"
 		;;
+	p|playground)
+		shift
+		python3 src/run_playground.py "$@"
+		;;
 	te|test)
 		shift;
 		python3 src/test.py "$@"
