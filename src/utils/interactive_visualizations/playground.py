@@ -34,6 +34,5 @@ class Playground(InteractiveVisualization):
 
         if event.type == pg.KEYDOWN:
             if event.key == pg.K_c:
+                # TODO
                 self.render_needed = True
-        elif event.type in (pg.WINDOWSIZECHANGED, pg.KEYUP, pg.ACTIVEEVENT):
-            self.render_needed = True

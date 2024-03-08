@@ -152,5 +152,3 @@ class Vec2Img(InteractiveVisualization):
                 else:
                     self.render_mode = self.RenderMode.ENCODING
                 self.render_needed = True
-        elif event.type in (pg.WINDOWSIZECHANGED, pg.KEYUP, pg.ACTIVEEVENT):
-            self.render_needed = True

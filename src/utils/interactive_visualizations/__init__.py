@@ -79,6 +79,8 @@ class InteractiveVisualization(metaclass=ABCMeta):
     def handle_event(self, event: pg.event.Event):
         if event.type == pg.QUIT:
             self.running = False
+        elif event.type in (pg.WINDOWSIZECHANGED, pg.KEYUP, pg.ACTIVEEVENT):
+            self.render_needed = True
 
 
 def create_affine_transformation(
