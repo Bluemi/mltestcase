@@ -4,7 +4,7 @@ import torch
 
 from train import MODEL_PATH
 from utils.datasets import load_data, get_examples, get_classes, get_mean_std
-from utils.interactive_visualizations import Vec2Img
+from utils.interactive_visualizations.vec2img import Vec2Img
 from model import MnistAutoencoder
 
 
