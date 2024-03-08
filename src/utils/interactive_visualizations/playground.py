@@ -76,9 +76,9 @@ class Playground(InteractiveVisualization):
         # y_raster = get_raster_coordinates(extreme_points_space[1, 1], extreme_points_space[0, 1], screen_size[1] // 40)
         # x_raster = get_raster_coordinates(extreme_points_space[0, 0], extreme_points_space[1, 0], screen_size[0] // 40)
 
-        y_raster = np.linspace(extreme_points_space[0, 1], extreme_points_space[1, 1], screen_size[1])
+        y_raster = np.linspace(extreme_points_space[1, 1], extreme_points_space[0, 1], screen_size[1])
         x_raster = np.linspace(extreme_points_space[0, 0], extreme_points_space[1, 0], screen_size[0])
-        grid = np.meshgrid(y_raster, x_raster, indexing='xy')
+        grid = np.meshgrid(x_raster, y_raster, indexing='xy')
         grid = np.stack(grid, axis=2)
         grid_shape = grid.shape
         grid = grid.reshape(-1, 2)
@@ -88,9 +88,10 @@ class Playground(InteractiveVisualization):
             result = self.model(grid_tensor)
             colors = interpolate_colors(result)
             colors = colors.reshape(grid_shape[0], grid_shape[1], 3)
-            # describe(colors, 'colors')
+            colors = torch.swapaxes(colors, 0, 1)
+            img = colors.to(int).numpy()
 
-            img = pg.surfarray.make_surface(colors.to(int).numpy())
+            img = pg.surfarray.make_surface(img[:, ::-1])
             self.screen.blit(img, (0, 0))
 
     def handle_event(self, event: pg.event.Event):
