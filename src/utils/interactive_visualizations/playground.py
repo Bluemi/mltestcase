@@ -63,8 +63,10 @@ class Playground(InteractiveVisualization):
     def _render_data(self):
         render_positions = self.coordinate_system.space_to_screen(self.points.T).T
         for render_position, label in zip(render_positions, self.labels):
-            color = pg.Color(255, 128, 0) if label == 1 else pg.Color(0, 180, 255)
-            pg.draw.circle(self.screen, color, render_position, 3)
+            color_point = pg.Color(255, 128, 0) if label == 1 else pg.Color(0, 180, 255)
+            color_border = pg.Color(255, 228, 180) if label == 1 else pg.Color(80, 240, 255)
+            pg.draw.circle(self.screen, color_border, render_position, 3)
+            pg.draw.circle(self.screen, color_point, render_position, 2)
 
     def _render_prediction(self):
         screen_size = self.screen.get_size()
@@ -155,9 +157,9 @@ def generate_data(data_kind, num_points: int = 1024) -> Tuple[np.ndarray, np.nda
 def interpolate_colors(values):
     values = torch.clip(values, -1, 1)
 
-    orange = torch.tensor([[255, 128, 0]], dtype=torch.float32)
+    orange = torch.tensor([[255, 168, 40]], dtype=torch.float32)
     white = torch.tensor([[255, 255, 255]], dtype=torch.float32)
-    cyan = torch.tensor([[0, 180, 255]], dtype=torch.float32)
+    cyan = torch.tensor([[40, 220, 255]], dtype=torch.float32)
 
     # interpolate for cyan case
     cyan_colors = -values[:, None] * cyan + ((1+values[:, None]) * white)
