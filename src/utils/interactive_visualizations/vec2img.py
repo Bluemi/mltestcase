@@ -136,21 +136,9 @@ class Vec2Img(InteractiveVisualization):
 
     def handle_event(self, event: pg.event.Event):
         super().handle_event(event)
-        if event.type == pg.MOUSEBUTTONDOWN:
-            self.dragging = True
-        elif event.type == pg.MOUSEBUTTONUP:
-            self.dragging = False
-        elif event.type == pg.MOUSEMOTION:
-            self.mouse_position = np.array(event.pos, dtype=int)
-            if self.dragging:
-                self.coordinate_system.translate(np.array(event.rel))
-                self.render_needed = True
-        elif event.type == pg.MOUSEWHEEL:
-            if event.y < 0:
-                self.coordinate_system.zoom_out(focus_point=self.mouse_position)
-            else:
-                self.coordinate_system.zoom_in(focus_point=self.mouse_position)
+        if self.coordinate_system.handle_event(event):
             self.render_needed = True
+
         elif event.type == pg.KEYDOWN:
             if event.key == pg.K_c:
                 if pg.key.get_mods() & pg.KMOD_SHIFT:
