@@ -6,7 +6,7 @@ from determined import pytorch
 from determined.pytorch import PyTorchTrial, PyTorchTrialContext
 from torch import optim, nn
 
-from model import MnistAutoencoder
+from model.mnist import MnistAutoencoder
 from utils.datasets import load_data
 
 

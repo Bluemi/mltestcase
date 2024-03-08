@@ -28,7 +28,7 @@ class Vec2Img(InteractiveVisualization):
         """
 
         :param model: The model that can be used to transform image to vec and vice versa.
-        :type model: model.MnistAutoencoder
+        :type model: model.mnist.MnistAutoencoder
         :param samples: A tuple [images, labels].
                         Images is a list of example images with shape [N, C, W, H], where N is the number of images, C
                         is the number of channels, W is the width and H is the height.
@@ -115,7 +115,7 @@ class Vec2Img(InteractiveVisualization):
         grid = np.meshgrid(x_raster, y_raster, indexing='xy')
         grid = np.stack(grid, axis=2).reshape(-1, 2)
 
-        grid_tensor = torch.tensor(grid, dtype=torch.float32)
+        grid_tensor = torch.tensor(grid, dtype=torch.float32, requires_grad=False)
         with torch.no_grad():
             decoded_images = self.model.decode(grid_tensor).reshape(-1, 1, 28, 28)
             if self.use_ft == 'fft':

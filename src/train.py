@@ -7,7 +7,7 @@ import torch.optim as optim
 from torch import nn
 from tqdm import trange
 
-from model import MnistAutoencoder
+from model.mnist import MnistAutoencoder
 from utils import fourier_transform_2d, cosine_transform_2d
 from utils.datasets import load_data
 from utils.loss_functions import custom_loss_function

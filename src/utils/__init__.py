@@ -10,10 +10,12 @@ def describe(x, label):
         if x.dtype != torch.cfloat:
             minimum = x.min().item()
             maximum = x.max().item()
+            mean = x.to(float).mean()
         else:
             minimum = x.real.min().item() + x.imag.min().item()*1j
             maximum = x.real.max().item() + x.imag.max().item()*1j
-        print(f'  mean={x.mean():.4f}  min={minimum:.4f}  max={maximum:.4f}')
+            mean = x.mean()
+        print(f'  mean={mean:.4f}  min={minimum:.4f}  max={maximum:.4f}')
     elif isinstance(x, np.ndarray):
         print(label)
         print(f'  shape={list(x.shape)}  dtype={x.dtype}')

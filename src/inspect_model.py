@@ -4,7 +4,8 @@ import torch
 import torchvision.utils
 from torch import nn
 
-from model import MnistAutoencoder, BlobLayer
+from model.layers import BlobLayer
+from model.mnist import MnistAutoencoder
 from utils import describe
 from utils.plotting import plot_3d_tensor, imshow
 
