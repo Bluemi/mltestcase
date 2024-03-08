@@ -146,6 +146,10 @@ class CoordinateSystem:
         self.coord: np.ndarray = coord
         self.inverse_coord: np.ndarray = np.linalg.pinv(self.coord)
 
+        # user control
+        self.dragging: bool = False
+        self.mouse_position = np.zeros(2, dtype=int)
+
     def zoom_out(self, focus_point=None):
         scale = 1 / 1.2
         scale_mat = create_affine_transformation(scale=scale)
@@ -196,6 +200,28 @@ class CoordinateSystem:
 
     def update_inv(self):
         self.inverse_coord = np.linalg.pinv(self.coord)
+
+    def handle_event(self, event):
+        render_needed = False
+        if event.type == pg.MOUSEBUTTONDOWN:
+            self.dragging = True
+            render_needed = True
+        elif event.type == pg.MOUSEBUTTONUP:
+            self.dragging = False
+            render_needed = True
+        elif event.type == pg.MOUSEMOTION:
+            self.mouse_position = np.array(event.pos, dtype=int)
+            if self.dragging:
+                self.translate(np.array(event.rel))
+                render_needed = True
+        elif event.type == pg.MOUSEWHEEL:
+            if event.y < 0:
+                self.zoom_out(focus_point=self.mouse_position)
+                render_needed = True
+            else:
+                self.zoom_in(focus_point=self.mouse_position)
+                render_needed = True
+        return render_needed, self
 
 
 def tensor_to_pg_img(image: torch.Tensor, alpha_threshold=0, color=None, normalization_mean_std=(0, 1)):
