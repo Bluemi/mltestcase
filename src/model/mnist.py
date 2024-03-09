@@ -2,7 +2,8 @@ import torch
 from torch import nn as nn
 from torch.nn import functional as functional
 
-from model.layers import BlobLayer
+from model.layers import BlobLayer, MothLayer
+from utils import describe
 
 
 class MnistAutoencoder(nn.Module):
@@ -14,13 +15,15 @@ class MnistAutoencoder(nn.Module):
         middle = 100
 
         if activation_func == 'sigmoid':
-            activation_function = nn.Sigmoid
+            activation_function = lambda n: nn.Sigmoid()
         elif activation_func == 'tanh':
-            activation_function = nn.Tanh
+            activation_function = lambda n: nn.Tanh()
         elif activation_func == 'relu':
-            activation_function = nn.ReLU
+            activation_function = lambda n: nn.ReLU()
         elif activation_func == 'elu':
-            activation_function = nn.ELU
+            activation_function = lambda n: nn.ELU()
+        elif activation_func == 'moth':
+            activation_function = MothLayer
         else:
             raise ValueError('Unknown activation function: {}'.format(activation_func))
 
@@ -31,16 +34,19 @@ class MnistAutoencoder(nn.Module):
 
         encoder_layers = [
             first_layer,
-            activation_function(),
+            nn.Sigmoid(),
+            activation_function(middle),
             nn.Linear(middle, bottleneck)
         ]
         if use_activation_for_z:
-            encoder_layers.append(activation_function())
+            encoder_layers.append(nn.Sigmoid())
+            encoder_layers.append(activation_function(bottleneck))
         self.encoder = nn.Sequential(*encoder_layers)
 
         decoder_layers = [
             nn.Linear(bottleneck, middle),
-            activation_function(),
+            nn.Sigmoid(),
+            activation_function(middle),
             nn.Linear(middle, 28 * 28)
         ]
         self.decoder = nn.Sequential(*decoder_layers)
@@ -61,6 +67,21 @@ class MnistAutoencoder(nn.Module):
 
     def encode(self, x):
         x = torch.flatten(x, start_dim=1)
+
+        # print()
+        # describe(x, 'x')
+        # for p in self.encoder[0].parameters():
+        #     describe(p, 'p')
+        # if torch.isnan(x).any():
+        #     raise ValueError('x isnan before first layer')
+        # x = self.encoder[0](x)
+        # describe(x, 'x after first layer')
+        # x = self.encoder[1](x)
+        # describe(x, 'x after second layer')
+        # x = self.encoder[2](x)
+        # describe(x, 'x after third layer')
+
+        # return x
 
         return self.encoder(x)
 

@@ -19,6 +19,7 @@ def parse_args():
         help='Either "fft" or "dct". If set, model is trained on fft/dct output.'
     )
     parser.add_argument('--blob-layer', action='store_true', help='Use blob layer as first layer. Otherwise use Linear layer.')
+    parser.add_argument('--moth-layer', action='store_true', help='Use moth layer as activation function. Otherwise use Sigmoid.')
 
     return parser.parse_args()
 
@@ -28,7 +29,11 @@ def main():
 
     device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
 
-    model = MnistAutoencoder(use_blob_layer=args.blob_layer)
+    activation_func = 'sigmoid'
+    if args.moth_layer:
+        activation_func = 'moth'
+
+    model = MnistAutoencoder(use_blob_layer=args.blob_layer, activation_func=activation_func)
     model.load_state_dict(torch.load(args.model_path, map_location=device))
 
     dataset = load_data('mnist', train=False, batch_size=8, num_workers=0)

@@ -87,6 +87,7 @@ def parse_args():
         help='Either "fft" or "dct". If set, model is trained on fft/dct output.'
     )
     parser.add_argument('--blob-layer', action='store_true', help='Use blob layer as first layer. Otherwise use Linear layer.')
+    parser.add_argument('--moth-layer', action='store_true', help='Use moth layer as activation function. Otherwise use Sigmoid.')
     parser.add_argument('--epochs', '-e', type=int, default=NUM_EPOCHS, help=f'The number of epochs. Defaults to {NUM_EPOCHS}.')
 
     return parser.parse_args()
@@ -99,7 +100,10 @@ def main():
 
     start_time = time.time()
 
-    model = MnistAutoencoder(use_blob_layer=args.blob_layer)
+    activation_func = 'sigmoid'
+    if args.moth_layer:
+        activation_func = 'moth'
+    model = MnistAutoencoder(use_blob_layer=args.blob_layer, activation_func=activation_func)
     print('loading model: \"{}\"'.format(args.init))
     if args.init:
         model.load_state_dict(torch.load(args.init), strict=False)

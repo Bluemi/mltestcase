@@ -2,6 +2,8 @@ import numpy as np
 import torch
 from torch import nn as nn
 
+from utils import describe
+
 
 class CustomLinearLayer(nn.Module):
     def __init__(self, in_features, out_features, use_bias=True):
@@ -74,12 +76,14 @@ class MothLayer(nn.Module):
     def forward(self, x):
         rolled = torch.roll(x, shifts=-1, dims=-1)
         # a = (x*self.plane_gradient[:, 0] + rolled*self.plane_gradient[:, 1]) * (1 - self.interpolation_factor + 0.5)
-        a = (x + rolled) * (1 - self.interpolation_factor + 0.5)
+        a = (x + rolled) * (1 - self.interpolation_factor)
         # b = torch.abs(x - rolled) * (self.interpolation_factor + 0.5)
         def _q(w):
-            return torch.minimum(torch.exp(w), torch.maximum(w, torch.tensor(0.0)))
-        b = _q(x-rolled) + _q(rolled-x)
+            return torch.minimum(torch.exp(w)-1, torch.maximum(w, torch.tensor(0.0)))
+        b = (_q(x-rolled) + _q(rolled-x)) * self.interpolation_factor
+
         result = a + b
         if self.bypass:
             return result + x
+
         return result

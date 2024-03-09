@@ -139,7 +139,7 @@ class Vec2Img(InteractiveVisualization):
         if self.coordinate_system.handle_event(event):
             self.render_needed = True
 
-        elif event.type == pg.KEYDOWN:
+        if event.type == pg.KEYDOWN:
             if event.key == pg.K_c:
                 if pg.key.get_mods() & pg.KMOD_SHIFT:
                     self.show_color_mode = (self.show_color_mode - 1) % 3
