@@ -1,5 +1,5 @@
 import enum
-from typing import Tuple
+from typing import Tuple, List
 
 import torch
 import numpy as np
@@ -19,7 +19,7 @@ class DataKind(enum.Enum):
 
     @classmethod
     def next(cls, current):
-        members = list(cls)
+        members: List = list(cls)
         index = members.index(current)
         return members[(index + 1) % len(members)]
 
@@ -32,12 +32,12 @@ class Playground(InteractiveVisualization):
         super().__init__(screen_size=screen_size, framerate=60)
         self.coordinate_system = CoordinateSystem(self.screen.get_size())
 
-        self.data_kind = DataKind.CIRCLE
+        self.data_kind = DataKind.SPIRALS
         self.points, self.labels = generate_data(self.data_kind)
 
         self.model = PlaygroundModel()
         self.loss = torch.nn.MSELoss()
-        self.optimizer = torch.optim.Adam(self.model.parameters(), lr=0.002, weight_decay=0.0002)
+        self.optimizer = torch.optim.Adam(self.model.parameters(), lr=0.001, weight_decay=0.0002)
         self.dataset = get_playground_dataloader(self.points, self.labels, 32, True)
 
     def tick(self, delta_time):

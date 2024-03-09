@@ -1,4 +1,5 @@
 from torch.nn import Module, Sequential, Linear, Sigmoid
+from model.layers import MothLayer
 
 
 class PlaygroundModel(Module):
@@ -7,11 +8,13 @@ class PlaygroundModel(Module):
         self.training = training
 
         self.layers = Sequential(
-            Linear(2, 4),
-            Sigmoid(),
-            Linear(4, 2),
-            Sigmoid(),
-            Linear(2, 1),
+            Linear(2, 8),
+            MothLayer(8),
+            # Sigmoid(),
+            Linear(8, 4),
+            MothLayer(4),
+            # Sigmoid(),
+            Linear(4, 1),
         )
 
     def forward(self, x):

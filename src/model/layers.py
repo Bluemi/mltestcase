@@ -64,11 +64,22 @@ class BlobLayer(nn.Module):
 
 
 class MothLayer(nn.Module):
-    def __init__(self, num_features):
+    def __init__(self, num_features, bypass: bool = False):
         super().__init__()
         self.num_features = num_features
+        self.bypass = bypass
         self.interpolation_factor = nn.Parameter(torch.normal(0, 0.2, size=(1, num_features)))
+        # self.plane_gradient = nn.Parameter(torch.normal(1, 0.2, size=(1, 2, num_features)))
 
     def forward(self, x):
         rolled = torch.roll(x, shifts=-1, dims=-1)
-        return torch.abs(x - rolled) * (self.interpolation_factor + 0.5) + (x + rolled) * (1 - self.interpolation_factor + 0.5)
+        # a = (x*self.plane_gradient[:, 0] + rolled*self.plane_gradient[:, 1]) * (1 - self.interpolation_factor + 0.5)
+        a = (x + rolled) * (1 - self.interpolation_factor + 0.5)
+        # b = torch.abs(x - rolled) * (self.interpolation_factor + 0.5)
+        def _q(w):
+            return torch.minimum(torch.exp(w), torch.maximum(w, torch.tensor(0.0)))
+        b = _q(x-rolled) + _q(rolled-x)
+        result = a + b
+        if self.bypass:
+            return result + x
+        return result
