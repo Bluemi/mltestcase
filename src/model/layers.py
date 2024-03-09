@@ -61,3 +61,14 @@ class BlobLayer(nn.Module):
         curves = self.calc_curves()
         prod = curves[None] * x[..., None]
         return torch.sum(prod, dim=(1, 2)) / self.num_pixels
+
+
+class MothLayer(nn.Module):
+    def __init__(self, num_features):
+        super().__init__()
+        self.num_features = num_features
+        self.interpolation_factor = nn.Parameter(torch.normal(0, 0.2, size=(1, num_features)))
+
+    def forward(self, x):
+        rolled = torch.roll(x, shifts=-1, dims=-1)
+        return torch.abs(x - rolled) * (self.interpolation_factor + 0.5) + (x + rolled) * (1 - self.interpolation_factor + 0.5)
