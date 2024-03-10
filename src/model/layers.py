@@ -74,16 +74,21 @@ class MothLayer(nn.Module):
         # self.plane_gradient = nn.Parameter(torch.normal(1, 0.2, size=(1, 2, num_features)))
 
     def forward(self, x):
-        rolled = torch.roll(x, shifts=-1, dims=-1)
-        # a = (x*self.plane_gradient[:, 0] + rolled*self.plane_gradient[:, 1]) * (1 - self.interpolation_factor + 0.5)
-        a = (x + rolled) * (1 - self.interpolation_factor)
-        # b = torch.abs(x - rolled) * (self.interpolation_factor + 0.5)
+        x_limited = torch.tanh(0.2 * x)
+        y = torch.roll(x_limited, shifts=-1, dims=-1)
+        inter_fac = self.interpolation_factor + 0.5
+
+        # a = (x*self.plane_gradient[:, 0] + y*self.plane_gradient[:, 1]) * (1 - inter_fac + 0.5)
+        # a = x + y
+        a = torch.sigmoid(x)
+
+        # b = torch.abs(x - y) * (inter_fac + 0.5)
         def _q(w):
             return torch.minimum(torch.exp(w)-1, torch.maximum(w, torch.tensor(0.0)))
-        b = (_q(x-rolled) + _q(rolled-x)) * self.interpolation_factor
+        b = _q(x_limited - y) + _q(y - x_limited)
 
-        result = a + b
+        result = a * (1 - inter_fac) + b * inter_fac
         if self.bypass:
-            return result + x
+            return result + x_limited
 
         return result

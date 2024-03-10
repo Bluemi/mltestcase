@@ -34,18 +34,15 @@ class MnistAutoencoder(nn.Module):
 
         encoder_layers = [
             first_layer,
-            nn.Sigmoid(),
             activation_function(middle),
             nn.Linear(middle, bottleneck)
         ]
         if use_activation_for_z:
-            encoder_layers.append(nn.Sigmoid())
             encoder_layers.append(activation_function(bottleneck))
         self.encoder = nn.Sequential(*encoder_layers)
 
         decoder_layers = [
             nn.Linear(bottleneck, middle),
-            nn.Sigmoid(),
             activation_function(middle),
             nn.Linear(middle, 28 * 28)
         ]

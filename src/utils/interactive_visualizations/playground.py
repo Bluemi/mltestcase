@@ -25,7 +25,7 @@ class DataKind(enum.Enum):
 
 
 class Playground(InteractiveVisualization):
-    def __init__(self, screen_size: None | Tuple[int, int] = None):
+    def __init__(self, screen_size: None | Tuple[int, int] = None, num_data_points: int = 1024):
         """
         :param screen_size: The start screen size of the pygame window
         """
@@ -33,12 +33,13 @@ class Playground(InteractiveVisualization):
         self.coordinate_system = CoordinateSystem(self.screen.get_size())
 
         self.data_kind = DataKind.SPIRALS
-        self.points, self.labels = generate_data(self.data_kind)
+        self.num_data_points = num_data_points
+        self.points, self.labels = generate_data(self.data_kind, self.num_data_points)
 
-        self.model = PlaygroundModel()
+        self.model = PlaygroundModel(activation_function='moth')
         self.loss = torch.nn.MSELoss()
-        self.optimizer = torch.optim.Adam(self.model.parameters(), lr=0.001, weight_decay=0.0002)
-        self.dataset = get_playground_dataloader(self.points, self.labels, 32, True)
+        self.optimizer = torch.optim.Adam(self.model.parameters(), lr=0.007, weight_decay=0.0)
+        self.dataset = get_playground_dataloader(self.points, self.labels, batch_size=128, shuffle=True)
 
     def tick(self, delta_time):
         for batch in self.dataset:
@@ -102,7 +103,7 @@ class Playground(InteractiveVisualization):
         if event.type == pg.KEYDOWN:
             if event.key == pg.K_d:
                 self.data_kind = DataKind.next(self.data_kind)
-                self.points, self.labels = generate_data(self.data_kind)
+                self.points, self.labels = generate_data(self.data_kind, self.num_data_points)
                 self.dataset = get_playground_dataloader(self.points, self.labels, 32, True)
                 self.render_needed = True
 
