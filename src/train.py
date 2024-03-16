@@ -5,6 +5,7 @@ from typing import Optional
 import torch
 import torch.optim as optim
 from torch import nn
+from torchsummary import summary
 from tqdm import trange
 
 from model.mnist import MnistAutoencoder
@@ -19,23 +20,28 @@ MODEL_PATH = 'models/mnist_classifier.pth'
 LEARNING_RATE = 0.007
 
 
-def calc_classifier_loss(model, inputs, labels):
-    predictions = model.forward_classify(inputs)
+def calc_classifier_loss(predictions, labels):
     return nn.functional.cross_entropy(predictions, labels)
 
 
-def calc_autoencoder_loss(model, inputs, labels):
-    embedding = model.encode(inputs)
-    outputs = model.decode(embedding)
-
+def calc_autoencoder_loss(inputs, outputs, embedding, labels):
     return custom_loss_function(
-        outputs, torch.flatten(inputs, start_dim=1), embedding, labels, beta=1.0, gamma=2.0
+        outputs, torch.flatten(inputs, start_dim=1), embedding, labels, alpha=0.05, beta=1.5, gamma=3.0
     )
 
 
-def train(train_dataset, model, optimizer, device, save_path: Optional[str] = None, use_ft=None):
+def _get_autoencoder_coefficient(use_ft):
+    autoencoder_coefficient = 0.2
+    if use_ft == 'fft':
+        autoencoder_coefficient = 0.004
+    elif use_ft == 'dct':
+        autoencoder_coefficient = 0.02
+    return autoencoder_coefficient
+
+
+def train(train_dataset, model, optimizer, device, save_path: Optional[str] = None, use_ft=None, epochs=NUM_EPOCHS):
     last_loss = None
-    pbar = trange(NUM_EPOCHS, ascii=True, desc=f'l={0.0:.4f}')
+    pbar = trange(epochs, ascii=True, desc=f'l={0.0:.4f}')
     for _epoch in pbar:
         current_loss_sum = 0.0
         example_counter = 0
@@ -50,14 +56,16 @@ def train(train_dataset, model, optimizer, device, save_path: Optional[str] = No
                 with torch.no_grad():
                     inputs = cosine_transform_2d(inputs.cpu()).to(device)
 
-            autoencoder_loss = calc_autoencoder_loss(model, inputs, labels)
-            classifier_loss = calc_classifier_loss(model, inputs, labels)
-            autoencoder_coefficient = 0.2
-            if use_ft == 'fft':
-                autoencoder_coefficient = 0.004
-            elif use_ft == 'dct':
-                autoencoder_coefficient = 0.02
+            embedding = model.encode(inputs)
+            outputs = model.decode(embedding)
+            predictions = model.classification_head(embedding)
+
+            autoencoder_loss = calc_autoencoder_loss(inputs, outputs, embedding, labels)
+            classifier_loss = calc_classifier_loss(predictions, labels)
+
+            autoencoder_coefficient = _get_autoencoder_coefficient(use_ft)
             loss = autoencoder_coefficient * autoencoder_loss + classifier_loss
+            # loss = autoencoder_loss
 
             loss.backward()
             optimizer.step()
@@ -109,13 +117,16 @@ def main():
         model.load_state_dict(torch.load(args.init), strict=False)
     model.to(device)
 
+    summary(model, input_size=(1, 28, 28))
+
     print('save model to: \"{}\"'.format(args.save_path))
 
-    optimizer = optim.AdamW(model.parameters(), lr=args.lr, weight_decay=args.wc)
+    # optimizer = optim.AdamW(model.parameters(), lr=args.lr, weight_decay=args.wc)
+    optimizer = optim.SGD(model.parameters(), lr=args.lr, weight_decay=args.wc)
 
     train_dataset = load_data('mnist', train=True, batch_size=BATCH_SIZE, num_workers=0, device=device)
 
-    last_loss = train(train_dataset, model, optimizer, device, save_path=args.save_path, use_ft=args.ft)
+    last_loss = train(train_dataset, model, optimizer, device, save_path=args.save_path, use_ft=args.ft, epochs=args.epochs)
 
     print('lr={} gives loss={}'.format(LEARNING_RATE, last_loss))
     print(f'training took {time.time() - start_time} seconds.')
