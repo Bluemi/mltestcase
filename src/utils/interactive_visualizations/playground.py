@@ -6,9 +6,8 @@ import numpy as np
 import pygame as pg
 
 from model.playground import PlaygroundModel
-from utils import describe
 from utils.datasets import get_playground_dataloader
-from utils.interactive_visualizations import InteractiveVisualization, CoordinateSystem, gray, tensor_to_pg_img
+from utils.interactive_visualizations import InteractiveVisualization, CoordinateSystem, gray
 
 
 class DataKind(enum.Enum):
