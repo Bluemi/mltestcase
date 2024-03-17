@@ -15,9 +15,9 @@ class PlaygroundModel(Module):
             raise ValueError('Unknown activation function: {}'.format(activation_function))
 
         self.layers = Sequential(
-            Linear(2, 8),
-            activation_func(8),
-            Linear(8, 4),
+            Linear(2, 4),
+            activation_func(4),
+            Linear(4, 4),
             activation_func(4),
             Linear(4, 2),
             activation_func(2),

@@ -83,9 +83,13 @@ class MothLayer(nn.Module):
         a = torch.sigmoid(x)
 
         # b = torch.abs(x - y) * (inter_fac + 0.5)
-        def _q(w):
-            return torch.minimum(torch.exp(w)-1, torch.maximum(w, torch.tensor(0.0)))
-        b = _q(x- y) + _q(y - x)
+        # def _q(w):
+            # return torch.minimum(torch.exp(w)-1, torch.maximum(w, torch.tensor(0.0)))
+        def _v(w):
+            return w * torch.sigmoid(w) - w * (1-torch.sigmoid(w))
+
+        # b = _q(x - y) + _q(y - x)
+        b = _v(x-y)
 
         result = a * (1 - inter_fac) + b * inter_fac
         if self.bypass:

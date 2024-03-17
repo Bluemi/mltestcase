@@ -32,7 +32,7 @@ class Playground(InteractiveVisualization):
         super().__init__(screen_size=screen_size, framerate=60)
         self.coordinate_system = CoordinateSystem(self.screen.get_size())
 
-        self.data_kind = DataKind.SPIRALS
+        self.data_kind = DataKind.CIRCLE
         self.num_data_points = num_data_points
         self.points, self.labels = generate_data(self.data_kind, self.num_data_points)
 
