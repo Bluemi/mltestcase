@@ -75,11 +75,9 @@ class Playground(InteractiveVisualization):
         extreme_points_screen = np.array([[0, 0], screen_size])
         extreme_points_space = self.coordinate_system.screen_to_space(extreme_points_screen.T).T
 
-        # y_raster = get_raster_coordinates(extreme_points_space[1, 1], extreme_points_space[0, 1], screen_size[1] // 40)
-        # x_raster = get_raster_coordinates(extreme_points_space[0, 0], extreme_points_space[1, 0], screen_size[0] // 40)
-
-        y_raster = np.linspace(extreme_points_space[1, 1], extreme_points_space[0, 1], screen_size[1])
-        x_raster = np.linspace(extreme_points_space[0, 0], extreme_points_space[1, 0], screen_size[0])
+        pixel_size = 8
+        y_raster = np.linspace(extreme_points_space[1, 1], extreme_points_space[0, 1], screen_size[1] // pixel_size)
+        x_raster = np.linspace(extreme_points_space[0, 0], extreme_points_space[1, 0], screen_size[0] // pixel_size)
         grid = np.meshgrid(x_raster, y_raster, indexing='xy')
         grid = np.stack(grid, axis=2)
         grid_shape = grid.shape
@@ -94,7 +92,7 @@ class Playground(InteractiveVisualization):
             img = colors.to(int).numpy()
 
             img = pg.surfarray.make_surface(img[:, ::-1])
-            self.screen.blit(img, (0, 0))
+            pg.transform.smoothscale(img, (screen_size[0], screen_size[1]), self.screen)
 
     def handle_event(self, event: pg.event.Event):
         super().handle_event(event)
