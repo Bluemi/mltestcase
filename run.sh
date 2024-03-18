@@ -33,6 +33,6 @@ case "$1" in
 		jupyter lab
 		;;
 	*)
-		echo "choose train or eval"
+		echo "choose between: train, eval, inspect, vis, playground, test, d, jupyter"
 		;;
 esac
