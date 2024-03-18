@@ -4,6 +4,7 @@ from typing import Tuple, List
 import torch
 import numpy as np
 import pygame as pg
+from torchsummary import summary
 
 from model.playground import PlaygroundModel
 from utils.datasets import get_playground_dataloader
@@ -36,8 +37,9 @@ class Playground(InteractiveVisualization):
         self.points, self.labels = generate_data(self.data_kind, self.num_data_points)
 
         self.model = PlaygroundModel(activation_function='moth')
+        summary(self.model, (2,), device='cpu')
         self.loss = torch.nn.MSELoss()
-        self.optimizer = torch.optim.Adam(self.model.parameters(), lr=0.007, weight_decay=0.0)
+        self.optimizer = torch.optim.SGD(self.model.parameters(), lr=0.002, weight_decay=0.0, momentum=0.9)
         self.dataset = get_playground_dataloader(self.points, self.labels, batch_size=128, shuffle=True)
 
     def tick(self, delta_time):

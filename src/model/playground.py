@@ -14,15 +14,19 @@ class PlaygroundModel(Module):
         else:
             raise ValueError('Unknown activation function: {}'.format(activation_function))
 
-        self.layers = Sequential(
-            Linear(2, 4),
-            activation_func(4),
-            Linear(4, 4),
-            activation_func(4),
-            Linear(4, 2),
-            activation_func(2),
-            Linear(2, 1),
-        )
+        layer_sizes = [
+            2, 16, 8, 1
+        ]
+
+        layers = []
+
+        for index, sizes in enumerate(zip(layer_sizes[:-1], layer_sizes[1:])):
+            input_size, output_size = sizes
+            layers.append(Linear(input_size, output_size))
+            if index != len(layer_sizes) - 2:
+                layers.append(activation_func(output_size))
+
+        self.layers = Sequential(*layers)
 
     def forward(self, x):
         return self.layers.forward(x)
