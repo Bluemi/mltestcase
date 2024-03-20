@@ -20,6 +20,7 @@ def parse_args():
     )
     parser.add_argument('--blob-layer', action='store_true', help='Use blob layer as first layer. Otherwise use Linear layer.')
     parser.add_argument('--moth-layer', action='store_true', help='Use moth layer as activation function. Otherwise use Sigmoid.')
+    parser.add_argument('--train-ds', action='store_true', help='Use train dataset instead of test dataset.')
 
     return parser.parse_args()
 
@@ -36,7 +37,7 @@ def main():
     model = MnistAutoencoder(use_blob_layer=args.blob_layer, activation_func=activation_func)
     model.load_state_dict(torch.load(args.model_path, map_location=device))
 
-    dataset = load_data('mnist', train=False, batch_size=8, num_workers=0)
+    dataset = load_data('mnist', train=args.train_ds, batch_size=8, num_workers=0)
 
     accuracy = model_accuracy(model, dataset, use_ft=args.ft)
     print('accuracy: {}'.format(accuracy))
