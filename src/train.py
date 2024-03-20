@@ -117,9 +117,9 @@ def main():
         model.load_state_dict(torch.load(args.init), strict=False)
     model.to(device)
 
-    summary(model, input_size=(1, 28, 28))
-
     print('save model to: \"{}\"'.format(args.save_path))
+
+    summary(model, input_size=(1, 28, 28))
 
     # optimizer = optim.AdamW(model.parameters(), lr=args.lr, weight_decay=args.wc)
     optimizer = optim.SGD(model.parameters(), lr=args.lr, weight_decay=args.wc)
