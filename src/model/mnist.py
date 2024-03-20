@@ -3,7 +3,6 @@ from torch import nn as nn
 from torch.nn import functional as functional
 
 from model.layers import BlobLayer, MothLayer
-from utils import describe
 
 
 class MnistAutoencoder(nn.Module):

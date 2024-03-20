@@ -39,7 +39,10 @@ def _get_autoencoder_coefficient(use_ft):
     return autoencoder_coefficient
 
 
-def train(train_dataset, model, optimizer, device, save_path: Optional[str] = None, use_ft=None, epochs=NUM_EPOCHS):
+def train(
+        train_dataset, model, optimizer, device, save_path: Optional[str] = None, use_ft=None, epochs=NUM_EPOCHS,
+        train_autoencoder=False
+):
     last_loss = None
     pbar = trange(epochs, ascii=True, desc=f'l={0.0:.4f}')
     for _epoch in pbar:
@@ -56,16 +59,19 @@ def train(train_dataset, model, optimizer, device, save_path: Optional[str] = No
                 with torch.no_grad():
                     inputs = cosine_transform_2d(inputs.cpu()).to(device)
 
-            embedding = model.encode(inputs)
-            outputs = model.decode(embedding)
-            predictions = model.classification_head(embedding)
+            if train_autoencoder:
+                embedding = model.encode(inputs)
+                outputs = model.decode(embedding)
+                predictions = model.classification_head(embedding)
 
-            autoencoder_loss = calc_autoencoder_loss(inputs, outputs, embedding, labels)
-            classifier_loss = calc_classifier_loss(predictions, labels)
+                autoencoder_loss = calc_autoencoder_loss(inputs, outputs, embedding, labels)
+                autoencoder_coefficient = _get_autoencoder_coefficient(use_ft)
+                classifier_loss = calc_classifier_loss(predictions, labels)
+                loss = autoencoder_coefficient * autoencoder_loss + classifier_loss
+            else:
+                predictions = model(inputs)
+                loss = calc_classifier_loss(predictions, labels)
 
-            autoencoder_coefficient = _get_autoencoder_coefficient(use_ft)
-            loss = autoencoder_coefficient * autoencoder_loss + classifier_loss
-            # loss = autoencoder_loss
 
             loss.backward()
             optimizer.step()
@@ -97,6 +103,7 @@ def parse_args():
     parser.add_argument('--blob-layer', action='store_true', help='Use blob layer as first layer. Otherwise use Linear layer.')
     parser.add_argument('--moth-layer', action='store_true', help='Use moth layer as activation function. Otherwise use Sigmoid.')
     parser.add_argument('--epochs', '-e', type=int, default=NUM_EPOCHS, help=f'The number of epochs. Defaults to {NUM_EPOCHS}.')
+    parser.add_argument('--autoencoder', action='store_true', help='Train with autoencoder loss')
 
     return parser.parse_args()
 
@@ -126,7 +133,10 @@ def main():
 
     train_dataset = load_data('mnist', train=True, batch_size=BATCH_SIZE, num_workers=0, device=device)
 
-    last_loss = train(train_dataset, model, optimizer, device, save_path=args.save_path, use_ft=args.ft, epochs=args.epochs)
+    last_loss = train(
+        train_dataset, model, optimizer, device, save_path=args.save_path, use_ft=args.ft, epochs=args.epochs,
+        train_autoencoder=args.autoencoder
+    )
 
     print('lr={} gives loss={}'.format(LEARNING_RATE, last_loss))
     print(f'training took {time.time() - start_time} seconds.')
