@@ -13,7 +13,7 @@ def model_accuracy(model: torch.nn.Module, loader: torch.utils.data.DataLoader, 
                 data = fourier_transform_2d(data)
             elif use_ft == 'dct':
                 data = cosine_transform_2d(data)
-            prediction = model.forward_classify(data)
+            prediction = model(data)
 
             label_prediction = prediction.argmax(dim=1)
 

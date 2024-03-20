@@ -53,32 +53,13 @@ class MnistAutoencoder(nn.Module):
         self.classification_head = nn.Sequential(*classification_layers)
 
     def forward(self, x):
-        x = self.encode(x)
-        x = self.decode(x)
-        return x
+        return self.classification_head(self.encode(x))
 
-    def forward_classify(self, x):
-        x = self.encode(x)
-        return self.classification_head(x)
+    def forward_autoencoder(self, x):
+        return self.decode(self.encode(x))
 
     def encode(self, x):
         x = torch.flatten(x, start_dim=1)
-
-        # print()
-        # describe(x, 'x')
-        # for p in self.encoder[0].parameters():
-        #     describe(p, 'p')
-        # if torch.isnan(x).any():
-        #     raise ValueError('x isnan before first layer')
-        # x = self.encoder[0](x)
-        # describe(x, 'x after first layer')
-        # x = self.encoder[1](x)
-        # describe(x, 'x after second layer')
-        # x = self.encoder[2](x)
-        # describe(x, 'x after third layer')
-
-        # return x
-
         return self.encoder(x)
 
     def decode(self, x):

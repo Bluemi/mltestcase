@@ -53,7 +53,7 @@ def show_prediction_images(dataset, model, use_ft=False):
                 data = fourier_transform_2d(data)
             elif use_ft == 'dct':
                 data = cosine_transform_2d(data)
-            outputs = model(data)
+            outputs = model.forward_autoencoder(data)
             outputs = torch.reshape(outputs, (-1, 1, 28, 28))
 
             if use_ft == 'fft':

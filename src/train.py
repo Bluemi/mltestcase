@@ -106,7 +106,7 @@ def train(
                 classifier_loss = calc_classifier_loss(predictions, labels)
                 loss = autoencoder_coefficient * autoencoder_loss + classifier_loss
             else:
-                predictions = model.forward_classify(inputs)
+                predictions = model(inputs)
                 loss = calc_classifier_loss(predictions, labels)
 
 
