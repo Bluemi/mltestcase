@@ -75,7 +75,7 @@ class Vec2Img(InteractiveVisualization):
                             model_input = fourier_transform_2d(img)
                         if self.use_ft == 'dct':
                             model_input = cosine_transform_2d(img)
-                        label = torch.argmax(self.model.forward_classify(model_input)).item()
+                        label = torch.argmax(self.model(model_input)).item()
                     color = COLORS[label]
                     img = tensor_to_pg_img(img, 128, color, normalization_mean_std=self.normalization_mean_std)
                 else:
