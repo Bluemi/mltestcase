@@ -223,7 +223,7 @@ class CoordinateSystem:
             else:
                 self.zoom_in(focus_point=self.mouse_position)
                 render_needed = True
-        return render_needed, self
+        return render_needed, self  # TODO: Is this a bug?
 
 
 def tensor_to_pg_img(image: torch.Tensor, alpha_threshold=0, color=None, normalization_mean_std=(0, 1)):
