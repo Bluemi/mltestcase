@@ -13,7 +13,7 @@ from torch.utils.data import Dataset
 from tqdm import tqdm
 
 
-POSSIBLE_DATA_DIR_LOCATIONS = [os.path.expanduser('~/misc/data'), '/data']
+POSSIBLE_DATA_DIR_LOCATIONS = [os.path.expanduser('~/misc/data'), '/data', os.path.expanduser('~/data')]
 
 
 def get_mean_std(ds_name):
