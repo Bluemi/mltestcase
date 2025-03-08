@@ -5,7 +5,7 @@ from torch import optim, nn, Tensor
 from determined.pytorch import PyTorchTrial, PyTorchTrialContext, TorchData, DataLoader
 from torchvision import transforms
 
-from model.ConvNet import ResNet18
+from model.resnet import ResNet18
 from utils.datasets import get_data_dir, ImageNetDataset
 
 

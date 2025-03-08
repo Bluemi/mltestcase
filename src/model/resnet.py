@@ -11,12 +11,10 @@ class Residual(nn.Module):
 
     def __init__(self, num_channels, use_1x1conv=False, strides=1):
         super().__init__()
-        self.conv1 = nn.LazyConv2d(num_channels, kernel_size=3, padding=1,
-                                   stride=strides)
+        self.conv1 = nn.LazyConv2d(num_channels, kernel_size=3, padding=1, stride=strides)
         self.conv2 = nn.LazyConv2d(num_channels, kernel_size=3, padding=1)
         if use_1x1conv:
-            self.conv3 = nn.LazyConv2d(num_channels, kernel_size=1,
-                                       stride=strides)
+            self.conv3 = nn.LazyConv2d(num_channels, kernel_size=1, stride=strides)
         else:
             self.conv3 = None
         self.bn1 = nn.LazyBatchNorm2d()

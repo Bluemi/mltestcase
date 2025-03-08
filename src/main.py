@@ -1,7 +1,7 @@
 import torch
 import torchsummary
 
-from model.ConvNet import ResNet18
+from model.resnet import ResNet18
 
 
 def main():
