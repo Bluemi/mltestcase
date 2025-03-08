@@ -8,7 +8,7 @@ from torch import nn
 from torchsummary import summary
 from tqdm import trange
 
-from model.mnist import MnistAutoencoder
+from model.mnist import MnistAutoencoder, MnistLinearRegression
 from utils import fourier_transform_2d, cosine_transform_2d
 from utils.datasets import load_data
 from utils.loss_functions import custom_loss_function
@@ -52,7 +52,8 @@ def main():
     activation_func = 'sigmoid'
     if args.moth_layer:
         activation_func = 'moth'
-    model = MnistAutoencoder(use_blob_layer=args.blob_layer, activation_func=activation_func)
+    # model = MnistAutoencoder(use_blob_layer=args.blob_layer, activation_func=activation_func)
+    model = MnistLinearRegression()
     print('loading model: \"{}\"'.format(args.init))
     if args.init:
         model.load_state_dict(torch.load(args.init), strict=False)
@@ -108,7 +109,6 @@ def train(
             else:
                 predictions = model(inputs)
                 loss = calc_classifier_loss(predictions, labels)
-
 
             loss.backward()
             optimizer.step()

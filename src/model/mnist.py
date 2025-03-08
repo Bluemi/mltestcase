@@ -6,7 +6,9 @@ from model.layers import BlobLayer, MothLayer
 
 
 class MnistAutoencoder(nn.Module):
-    def __init__(self, activation_func: str = 'sigmoid', use_activation_for_z=False, use_blob_layer=False, training=False):
+    def __init__(
+            self, activation_func: str = 'sigmoid', use_activation_for_z=False, use_blob_layer=False, training=False
+    ):
         super().__init__()
         self.training = training
 
@@ -88,3 +90,13 @@ class MnistClassification(nn.Module):
         x = functional.relu(self.fc2(x))
         x = self.fc3(x)
         return x
+
+
+class MnistLinearRegression(nn.Module):
+    def __init__(self):
+        super().__init__()
+        self.fc1 = nn.Linear(28 * 28, 10)
+
+    def forward(self, x):
+        x = torch.flatten(x, start_dim=1)
+        return self.fc1(x)

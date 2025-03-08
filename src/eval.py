@@ -3,7 +3,7 @@ import argparse
 import torch
 import torchvision
 
-from model.mnist import MnistAutoencoder
+from model.mnist import MnistAutoencoder, MnistLinearRegression
 from utils.datasets import load_data, get_mean_std
 from utils.plotting import imshow
 from utils import denormalize, fourier_transform_2d, inv_fourier_transform_2d, cosine_transform_2d, \
@@ -21,6 +21,7 @@ def parse_args():
     parser.add_argument('--blob-layer', action='store_true', help='Use blob layer as first layer. Otherwise use Linear layer.')
     parser.add_argument('--moth-layer', action='store_true', help='Use moth layer as activation function. Otherwise use Sigmoid.')
     parser.add_argument('--train-ds', action='store_true', help='Use train dataset instead of test dataset.')
+    parser.add_argument('-s', '--show-predictions', action='store_true', help='Show reassembled images predictions.')
 
     return parser.parse_args()
 
@@ -34,7 +35,8 @@ def main():
     if args.moth_layer:
         activation_func = 'moth'
 
-    model = MnistAutoencoder(use_blob_layer=args.blob_layer, activation_func=activation_func)
+    # model = MnistAutoencoder(use_blob_layer=args.blob_layer, activation_func=activation_func)
+    model = MnistLinearRegression()
     model.load_state_dict(torch.load(args.model_path, map_location=device))
 
     dataset = load_data('mnist', train=args.train_ds, batch_size=8, num_workers=0)
@@ -42,7 +44,8 @@ def main():
     accuracy = model_accuracy(model, dataset, use_ft=args.ft)
     print('accuracy: {}'.format(accuracy))
 
-    show_prediction_images(dataset, model, use_ft=args.ft)
+    if args.show_predictions:
+        show_prediction_images(dataset, model, use_ft=args.ft)
 
 
 def show_prediction_images(dataset, model, use_ft=False):
