@@ -5,11 +5,12 @@ from torch import optim, nn, Tensor
 from determined.pytorch import PyTorchTrial, PyTorchTrialContext, TorchData, DataLoader
 from torchvision import transforms
 
+from model.layers import Conv2dMoth
 from model.resnet import ResNet18
 from utils.datasets import get_data_dir, ImageNetDataset
 
 
-class AutoencoderTrial(PyTorchTrial):
+class MothTrial(PyTorchTrial):
     def __init__(self, context: PyTorchTrialContext):
         super().__init__(context)
         self.context = context
@@ -22,11 +23,17 @@ class AutoencoderTrial(PyTorchTrial):
         # loss function
         self.loss_function = nn.MSELoss()
 
-    @staticmethod
-    def _build_model():
-        # activation_func = self.context.get_hparam('activation_func')
-        # TODO: use moth layer
-        return ResNet18()
+    def _build_model(self):
+        activation_func = self.context.get_hparam('activation_func')
+        match activation_func:
+            case 'normal':
+                layer_type = nn.Conv2d
+            case 'moth':
+                layer_type = Conv2dMoth
+            case _:
+                raise ValueError(f'Unknown activation function: {activation_func}')
+
+        return ResNet18(layer_type=layer_type)
 
     def _build_optimizer(self):
         return optim.SGD(
