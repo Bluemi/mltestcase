@@ -2,8 +2,6 @@ import numpy as np
 import torch
 from torch import nn as nn
 
-from utils import describe
-
 
 class CustomLinearLayer(nn.Module):
     def __init__(self, in_features, out_features, use_bias=True):
