@@ -7,7 +7,7 @@ import pygame as pg
 from torchsummary import summary
 
 from model.playground import PlaygroundModel
-from utils.datasets import get_playground_dataloader
+from utils.datasets.playground import get_playground_dataloader
 from utils.interactive_visualizations import InteractiveVisualization, CoordinateSystem, gray
 
 
@@ -89,6 +89,7 @@ class Playground(InteractiveVisualization):
             colors = interpolate_colors(result)
             colors = colors.reshape(grid_shape[0], grid_shape[1], 3)
             colors = torch.swapaxes(colors, 0, 1)
+            # noinspection PyTypeChecker
             img = colors.to(int).numpy()
 
             img = pg.surfarray.make_surface(img[:, ::-1])

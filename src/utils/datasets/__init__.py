@@ -5,12 +5,14 @@ from typing import Tuple
 import torch
 import torchvision
 import torchvision.transforms as transforms
+
+from .mnist import MnistDataset
+
 try:
     from determined.pytorch import DataLoader
 except ImportError:
     from torch.utils.data import DataLoader
 from torch.utils.data import Dataset
-from tqdm import tqdm
 
 
 POSSIBLE_DATA_DIR_LOCATIONS = [os.path.expanduser('~/misc/data'), '/data', os.path.expanduser('~/data')]
@@ -72,29 +74,6 @@ def load_data(dataset_name, train, batch_size=4, shuffle=True, num_workers=2, de
     )
 
 
-class MnistDataset(Dataset):
-    def __init__(self, root, download, train, transform):
-        ds = torchvision.datasets.MNIST(
-            root=root, download=download, train=train, transform=transform
-        )
-        self.mnist_data = torch.zeros((len(ds), 1, 28, 28))
-        self.mnist_labels = torch.zeros(len(ds), dtype=torch.long)
-        # noinspection PyTypeChecker
-        for i, sample in tqdm(enumerate(ds), desc="loading mnist", total=len(ds), ascii=True):
-            self.mnist_data[i] = sample[0]
-            self.mnist_labels[i] = sample[1]
-
-    def to_device(self, device):
-        self.mnist_data = self.mnist_data.to(device)
-        self.mnist_labels = self.mnist_labels.to(device)
-
-    def __len__(self):
-        return len(self.mnist_labels)
-
-    def __getitem__(self, index):
-        return self.mnist_data[index], self.mnist_labels[index]
-
-
 def get_examples(dataset: Dataset, n_labels: int, n: int = 1) -> Tuple[torch.Tensor, torch.Tensor]:
     """
     Returns a tuple [images, labels] of the dataset in which each label is represented equally often.
@@ -134,22 +113,3 @@ def get_examples(dataset: Dataset, n_labels: int, n: int = 1) -> Tuple[torch.Ten
         raise ValueError("Could not find enough examples for each label")
 
     return examples, labels
-
-
-def get_playground_dataloader(points, labels, batch_size: int, shuffle: bool):
-    dataset = PlaygroundDataset(points, labels)
-    return DataLoader(dataset, batch_size=batch_size, shuffle=shuffle)
-
-
-class PlaygroundDataset(Dataset):
-    def __init__(self, points, labels):
-        self.points = torch.tensor(points, dtype=torch.float32, requires_grad=False)
-        self.labels = torch.tensor(labels.reshape(-1, 1), dtype=torch.float32, requires_grad=False)
-
-        assert len(points) == len(labels)
-
-    def __len__(self):
-        return len(self.points)
-
-    def __getitem__(self, index):
-        return self.points[index], self.labels[index]
