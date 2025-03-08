@@ -100,12 +100,13 @@ class MothLayer(nn.Module):
 class Conv2dMoth(nn.Module):
     def __init__(
             self, in_channels: int, out_channels: int, kernel_size: int, stride: int, padding: int, moth_channels: int,
-            moth_stride: int = 1,
+            moth_stride: int = 1, min_size: int = 10,
     ):
         super().__init__()
         self.conf = nn.Conv2d(in_channels, out_channels, kernel_size, stride, padding)
         self.moth_channels = moth_channels
         self.moth_stride = moth_stride
+        self.min_size = min_size
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         """
@@ -114,9 +115,10 @@ class Conv2dMoth(nn.Module):
         :return: Tensor with shape [b, c, h, w].
         """
         x = self.conf(x)
-        d = torch.abs(
-            x[:, :self.moth_channels, self.moth_stride*2:, :] -
-            x[:, :self.moth_channels, :-self.moth_stride*2, :]
-        )
-        x[:, :self.moth_channels, self.moth_stride:-self.moth_stride, :] += d
+        if x.shape[2] >= self.min_size:
+            d = torch.abs(
+                x[:, :self.moth_channels, self.moth_stride*2:, :] -
+                x[:, :self.moth_channels, :-self.moth_stride*2, :]
+            )
+            x[:, :self.moth_channels, self.moth_stride:-self.moth_stride, :] += d
         return x

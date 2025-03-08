@@ -9,12 +9,12 @@ from torch.nn import functional as func
 class Residual(nn.Module):
     """The Residual block of ResNet models."""
 
-    def __init__(self, num_channels, use_1x1conv=False, strides=1):
+    def __init__(self, in_channels: int, out_channels: int, use_1x1conv: bool = False, strides: int = 1):
         super().__init__()
-        self.conv1 = nn.LazyConv2d(num_channels, kernel_size=3, padding=1, stride=strides)
-        self.conv2 = nn.LazyConv2d(num_channels, kernel_size=3, padding=1)
+        self.conv1 = nn.Conv2d(in_channels, out_channels, kernel_size=3, padding=1, stride=strides)
+        self.conv2 = nn.Conv2d(out_channels, out_channels, kernel_size=3, padding=1)
         if use_1x1conv:
-            self.conv3 = nn.LazyConv2d(num_channels, kernel_size=1, stride=strides)
+            self.conv3 = nn.Conv2d(in_channels, out_channels, kernel_size=1, stride=strides)
         else:
             self.conv3 = None
         self.bn1 = nn.LazyBatchNorm2d()
@@ -30,7 +30,7 @@ class Residual(nn.Module):
 
 
 class ResNet(nn.Module):
-    def __init__(self, arch, num_classes=10):
+    def __init__(self, arch, num_classes=10, layer_type=nn.Conv2d):
         super(ResNet, self).__init__()
         self.net = nn.Sequential(self.b1(3, 64))
         for i, b in enumerate(arch):
@@ -51,13 +51,13 @@ class ResNet(nn.Module):
         )
 
     @staticmethod
-    def block(num_residuals, num_channels, first_block=False):
+    def block(num_residuals, prev_num_channels, num_channels, first_block=False):
         blk = []
         for i in range(num_residuals):
             if i == 0 and not first_block:
-                blk.append(Residual(num_channels, use_1x1conv=True, strides=2))
+                blk.append(Residual(prev_num_channels, num_channels, use_1x1conv=True, strides=2))
             else:
-                blk.append(Residual(num_channels))
+                blk.append(Residual(num_channels, num_channels))
         return nn.Sequential(*blk)
 
 
@@ -65,10 +65,10 @@ class ResNet18(ResNet):
     def __init__(self, num_classes=10):
         super().__init__(
             [
-                (2, 64),
-                (2, 128),
-                (2, 256),
-                (2, 512)
+                (2, 64, 64),
+                (2, 64, 128),
+                (2, 128, 256),
+                (2, 256, 512)
             ],
             num_classes
         )
