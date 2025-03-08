@@ -4,7 +4,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import List, Callable
 
-from PIL import Image
+import torchvision
 
 import torch
 
@@ -48,5 +48,5 @@ class ImageNetDataset(torch.utils.data.Dataset):
 
     def __getitem__(self, index):
         entry = self.index[index]
-        image = Image.open(entry.image_path)
+        image = torchvision.io.decode_image(entry.image_path)
         return self.transform(image), entry.label
