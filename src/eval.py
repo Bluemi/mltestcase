@@ -2,6 +2,7 @@ import argparse
 
 import torch
 import torchvision
+from torchsummary import summary
 
 from model.mnist import MnistAutoencoder, MnistLinearRegression
 from utils.datasets import load_data, get_mean_std
@@ -38,8 +39,12 @@ def main():
     # model = MnistAutoencoder(use_blob_layer=args.blob_layer, activation_func=activation_func)
     model = MnistLinearRegression()
     model.load_state_dict(torch.load(args.model_path, map_location=device))
+    model.to(device)
 
-    dataset = load_data('mnist', train=args.train_ds, batch_size=8, num_workers=0)
+    print(next(model.parameters()).device)
+    summary(model, input_size=(1, 28, 28))
+
+    dataset = load_data('mnist', train=args.train_ds, batch_size=8, num_workers=0, device=device)
 
     accuracy = model_accuracy(model, dataset, use_ft=args.ft)
     print('accuracy: {}'.format(accuracy))
