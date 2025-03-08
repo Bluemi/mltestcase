@@ -10,7 +10,7 @@ import torch
 
 
 class ImageNetDataset(torch.utils.data.Dataset):
-    def __init__(self, root: str | Path, transform: Callable):
+    def __init__(self, root: str | Path, transform: Callable, **_kwargs):
         """
         :param root: Path to the root directory of the dataset.
         :param transform: A callable object (e.g., torchvision transform) applied to images.

@@ -6,6 +6,7 @@ import torch
 import torchvision
 import torchvision.transforms as transforms
 
+from .image_net import ImageNetDataset
 from .mnist import MnistDataset
 
 try:
@@ -56,6 +57,7 @@ def load_data(dataset_name, train, batch_size=4, shuffle=True, num_workers=2, de
     dataset_c = {
         'cifar10': torchvision.datasets.CIFAR10,
         'mnist': MnistDataset,
+        'imagenet': ImageNetDataset,
     }[dataset_name]
 
     datadir = get_data_dir()

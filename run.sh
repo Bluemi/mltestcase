@@ -1,6 +1,10 @@
 #!/bin/bash
 
 case "$1" in
+	r|run)
+		shift
+		python3 src/main.py "$@"
+		;;
 	t|train)
 		shift;
 		python3 src/train.py "$@"
