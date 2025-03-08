@@ -99,11 +99,13 @@ class MothLayer(nn.Module):
 
 class Conv2dMoth(nn.Module):
     def __init__(
-            self, in_channels: int, out_channels: int, kernel_size: int, stride: int, padding: int, moth_channels: int,
-            moth_stride: int = 1, min_size: int = 10,
+            self, in_channels: int, out_channels: int, kernel_size: int, stride: int = 1, padding: int = 0,
+            moth_channels: int | float = 0.2, moth_stride: int = 1, min_size: int = 10,
     ):
         super().__init__()
         self.conf = nn.Conv2d(in_channels, out_channels, kernel_size, stride, padding)
+        if isinstance(moth_channels, float):
+            moth_channels = int(moth_channels * out_channels)
         self.moth_channels = moth_channels
         self.moth_stride = moth_stride
         self.min_size = min_size
