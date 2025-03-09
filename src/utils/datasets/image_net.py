@@ -1,12 +1,27 @@
-import json
 import os
 from dataclasses import dataclass
 from pathlib import Path
-from typing import List, Callable
+from typing import List, Callable, Tuple
 
 import torchvision
 
 import torch
+
+
+@dataclass
+class Label:
+    index: int
+    identifier: str
+    name: str
+
+    def __eq__(self, other):
+        return self.index == other.index
+
+
+@dataclass
+class _IndexEntry:
+    image_path: str
+    label: Label
 
 
 class ImageNetDataset(torch.utils.data.Dataset):
@@ -17,36 +32,48 @@ class ImageNetDataset(torch.utils.data.Dataset):
         """
         self.root = Path(root)
         self.transform = transform
-        self.label_names = ImageNetDataset._load_label_names(root)
-        self.index = ImageNetDataset._create_index(root)
+        self.labels = ImageNetDataset._load_labels(self.root)
+        self.image_list = ImageNetDataset._create_image_list(self.root, self.labels)
 
     @staticmethod
     def _label_name(label: int) -> str:
         pass
 
     @staticmethod
-    def _load_label_names(root: Path) -> list[str]:
-        with open(root / "labels.json", 'r') as f:
-            return json.load(f)
+    def _load_labels(root: Path) -> List[Label]:
+        label_path = root / 'ImageSets' / 'CLS-LOC' / 'classes.txt'
 
-    @dataclass
-    class _IndexEntry:
-        image_path: str
-        label: int
+        labels = []
+        with open(label_path, 'r') as file:
+            for index, line in enumerate(file):
+                parts = line.strip().split(" ", 1)
+                if len(parts) == 2:
+                    label = Label(index, parts[0], parts[1].split(", ")[0])
+                    labels.append(label)
+
+        return labels
 
     @staticmethod
-    def _create_index(root: Path) -> List[_IndexEntry]:
+    def _create_image_list(root: Path, labels: List[Label]) -> List[_IndexEntry]:
         index = []
-        for class_index, class_dir in enumerate(root.iterdir()):
+        images_dir = root / 'Data' / 'CLS-LOC' / 'train'
+        for label in labels:
+            class_dir = images_dir / label.identifier
             if os.path.isdir(class_dir):
                 for image_path in class_dir.iterdir():
-                    index.append(ImageNetDataset._IndexEntry(image_path, class_index))
+                    index.append(_IndexEntry(image_path, label))
+            else:
+                raise FileNotFoundError(f"Class directory not found: {class_dir}")
         return index
     
     def __len__(self):
-        return len(self.index)
+        return len(self.image_list)
 
-    def __getitem__(self, index):
-        entry = self.index[index]
-        image = torchvision.io.decode_image(entry.image_path)
+    def __getitem__(self, index) -> Tuple[torch.Tensor, Label]:
+        entry = self.image_list[index]
+        try:
+            image = torchvision.io.decode_image(entry.image_path)
+        except:
+            print(entry.image_path)
+            raise
         return self.transform(image), entry.label

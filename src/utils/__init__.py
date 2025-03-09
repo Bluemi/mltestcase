@@ -3,29 +3,33 @@ import scipy
 import torch
 
 
-def describe(x, label):
+def describe(x, label, shape=True, borders=False):
     if isinstance(x, torch.Tensor):
         print(label)
-        print(f'  shape={list(x.shape)}  dtype={x.dtype}')
-        if x.dtype != torch.cfloat:
-            minimum = x.min().item()
-            maximum = x.max().item()
-            mean = x.to(float).mean()
-        else:
-            minimum = x.real.min().item() + x.imag.min().item()*1j
-            maximum = x.real.max().item() + x.imag.max().item()*1j
-            mean = x.mean()
-        print(f'  mean={mean:.4f}  min={minimum:.4f}  max={maximum:.4f}')
+        if shape:
+            print(f'  shape={list(x.shape)}  dtype={x.dtype}')
+        if borders:
+            if x.dtype != torch.cfloat:
+                minimum = x.min().item()
+                maximum = x.max().item()
+                mean = x.to(float).mean()
+            else:
+                minimum = x.real.min().item() + x.imag.min().item()*1j
+                maximum = x.real.max().item() + x.imag.max().item()*1j
+                mean = x.mean()
+            print(f'  mean={mean:.4f}  min={minimum:.4f}  max={maximum:.4f}')
     elif isinstance(x, np.ndarray):
         print(label)
-        print(f'  shape={list(x.shape)}  dtype={x.dtype}')
-        if not np.iscomplexobj(x):
-            minimum = x.min()
-            maximum = x.max()
-        else:
-            minimum = x.real.min() + x.imag.min() * 1j
-            maximum = x.real.max() + x.imag.max() * 1j
-        print(f'  mean={x.mean():.4f}  min={minimum:.4f}  max={maximum:.4f}')
+        if shape:
+            print(f'  shape={list(x.shape)}  dtype={x.dtype}')
+        if borders:
+            if not np.iscomplexobj(x):
+                minimum = x.min()
+                maximum = x.max()
+            else:
+                minimum = x.real.min() + x.imag.min() * 1j
+                maximum = x.real.max() + x.imag.max() * 1j
+            print(f'  mean={x.mean():.4f}  min={minimum:.4f}  max={maximum:.4f}')
     else:
         print(f'no description for type \"{type(x).__name__}\"')
 

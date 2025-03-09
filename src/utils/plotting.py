@@ -13,8 +13,9 @@ def _press(event):
 
 def imshow(img):
     # img = img / 2 + 0.5
-    np_img = img.numpy()
-    np_img = np.minimum(np.maximum(np_img, 0.0), 1.0)
+    if isinstance(img, torch.Tensor):
+        img = img.numpy()
+    np_img = np.minimum(np.maximum(img, 0.0), 1.0)
 
     plt.ion()
     plt.imshow(np.transpose(np_img, (1, 2, 0)))
