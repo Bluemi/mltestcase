@@ -4,6 +4,7 @@ import torch
 from torch import optim, nn, Tensor
 from determined.pytorch import PyTorchTrial, PyTorchTrialContext, TorchData, DataLoader
 from torchvision import transforms
+import torchmetrics
 
 from model.layers import Conv2dMoth
 from model.resnet import ResNet18
@@ -22,6 +23,9 @@ class MothTrial(PyTorchTrial):
 
         # loss function
         self.loss_function = nn.CrossEntropyLoss()
+
+        self.top5_accuracy = torchmetrics.classification.MulticlassAccuracy(num_classes=1000, top_k=5)
+        self.top1_accuracy = torchmetrics.classification.MulticlassAccuracy(num_classes=1000, top_k=1)
 
     def _build_model(self):
         activation_func = self.context.get_hparam('activation_func')
@@ -65,10 +69,15 @@ class MothTrial(PyTorchTrial):
             outputs = self.model(inputs)
             loss = self.loss_function(outputs, labels)
 
+            top1_accuracy = self.top1_accuracy(outputs, labels)
+            top5_accuracy = self.top5_accuracy(outputs, labels)
+
         # TODO: write images to determined ai
 
         return {
-            'loss': loss
+            'loss': loss,
+            'accuracy_top1': top1_accuracy,
+            'accuracy_top5': top5_accuracy,
         }
 
     def build_training_data_loader(self) -> DataLoader:
@@ -85,7 +94,7 @@ class MothTrial(PyTorchTrial):
             dataset,
             batch_size=self.context.get_global_batch_size(),
             shuffle=True,
-            num_workers=6,
+            num_workers=10,
         )
 
     def build_validation_data_loader(self) -> DataLoader:
@@ -101,6 +110,6 @@ class MothTrial(PyTorchTrial):
         return DataLoader(
             dataset,
             batch_size=self.context.get_global_batch_size(),
-            shuffle=True,
-            num_workers=6,
+            shuffle=False,
+            num_workers=10,
         )

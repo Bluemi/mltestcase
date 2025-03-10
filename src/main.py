@@ -1,7 +1,9 @@
 import os
+from pathlib import Path
 
 import torch
 import torchsummary
+from determined.pytorch import DataLoader
 from torchvision import transforms
 from tqdm import tqdm
 
@@ -82,17 +84,30 @@ def calculate_mean_std():
 
 
 def clear_dataset():
-    dataset = ImageNetDataset(
-        os.path.expanduser('~/data/datasets/ImageNet/'),
-        train=True,
-        transform=transforms.Compose([]),
-    )
+    dataloader = build_dataloader()
 
-    for data, label in tqdm(dataset):
-        if data.shape[0] != 3:
-            print(dataset.image_list[label.index].image_path, data.shape)
+    for data, label in tqdm(dataloader):
+        pass
+
+
+def build_dataloader():
+    transform = transforms.Compose([
+        transforms.Resize((96, 96)),
+        transforms.Normalize(ImageNetDataset.MEAN_VALUES, ImageNetDataset.STD_VALUES)
+    ])
+
+    datadir = Path(os.path.expanduser('~/data/datasets/ImageNet/'))
+
+    dataset = ImageNetDataset(root=datadir, transform=transform, train=False)
+
+    return DataLoader(
+        dataset,
+        batch_size=512,
+        shuffle=False,
+        num_workers=10,
+    )
 
 
 if __name__ == '__main__':
-    calculate_mean_std()
-    # clear_dataset()
+    # calculate_mean_std()
+    clear_dataset()

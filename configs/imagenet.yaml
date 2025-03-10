@@ -31,7 +31,7 @@ entrypoint: determined_ai.moth_image_net:MothTrial
 environment:
   image:
     cpu: "determinedai/environments:cuda-11.3-pytorch-1.12-tf-2.11-gpu-0.26.4"
-    cuda: "determinedai/pytorch-ngc:0.38.0"
+    cuda: "bruno1996/determined-pytorch:0.1"
 bind_mounts:
   - host_path: "/home/alok/data"
     container_path: "/data"
