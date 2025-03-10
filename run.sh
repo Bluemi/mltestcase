@@ -34,7 +34,7 @@ case "$1" in
 		python3 src/test.py "$@"
 		;;
 	d)
-		det -m "$DET_MASTER" -u "$DET_USER" experiment create ./configs/imagenet.yaml ./src
+		det -m "$DET_MASTER" -u "$DET_USER" experiment create ./configs/imagenet_single.yaml ./src
 		;;
 	j|jupyter)
 		jupyter lab

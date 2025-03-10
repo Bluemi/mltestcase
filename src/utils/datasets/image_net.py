@@ -29,15 +29,17 @@ class ImageNetDataset(torch.utils.data.Dataset):
     MEAN_VALUES = [0.4812, 0.4573, 0.4078]
     STD_VALUES = [0.2161, 0.2117, 0.2126]
 
-    def __init__(self, root: str | Path, transform: Callable, **_kwargs):
+    def __init__(self, root: str | Path, transform: Callable, train: bool, full_labels: bool = False):
         """
         :param root: Path to the root directory of the dataset.
         :param transform: A callable object (e.g., torchvision transform) applied to images.
+        :param train: Whether to load the training set or the validation set.
         """
         self.root = Path(root)
         self.transform = transform
         self.labels = ImageNetDataset._load_labels(self.root)
-        self.image_list = ImageNetDataset._create_image_list(self.root, self.labels)
+        self.image_list = ImageNetDataset._create_image_list(self.root, self.labels, train)
+        self.full_labels = full_labels
 
     @staticmethod
     def _label_name(label: int) -> str:
@@ -58,9 +60,10 @@ class ImageNetDataset(torch.utils.data.Dataset):
         return labels
 
     @staticmethod
-    def _create_image_list(root: Path, labels: List[Label]) -> List[_IndexEntry]:
+    def _create_image_list(root: Path, labels: List[Label], train: bool) -> List[_IndexEntry]:
         index = []
-        images_dir = root / 'Data' / 'CLS-LOC' / 'train'
+        train_dir = 'train' if train else 'val_sorted'
+        images_dir = root / 'Data' / 'CLS-LOC' / train_dir
         for label in labels:
             class_dir = images_dir / label.identifier
             if os.path.isdir(class_dir):
@@ -75,11 +78,14 @@ class ImageNetDataset(torch.utils.data.Dataset):
 
     def __getitem__(self, index) -> Tuple[torch.Tensor, Label]:
         entry = self.image_list[index]
-        image = torchvision.io.decode_image(entry.image_path)
+        image = torchvision.io.read_image(str(entry.image_path))
         if image.shape[0] == 1:
             image = image.expand(3, *image.shape[1:])
         image = image.to(torch.float32) / 255.0
-        return self.transform(image), entry.label
+        label = entry.label
+        if not self.full_labels:
+            label = label.index
+        return self.transform(image), label
 
     def get_example_indices(self, n_per_class: int) -> List[int]:
         result_indices = []

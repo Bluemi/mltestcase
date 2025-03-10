@@ -21,7 +21,7 @@ class MothTrial(PyTorchTrial):
         self.optimizer = self.context.wrap_optimizer(self._build_optimizer())
 
         # loss function
-        self.loss_function = nn.MSELoss()
+        self.loss_function = nn.CrossEntropyLoss()
 
     def _build_model(self):
         activation_func = self.context.get_hparam('activation_func')
@@ -33,7 +33,7 @@ class MothTrial(PyTorchTrial):
             case _:
                 raise ValueError(f'Unknown activation function: {activation_func}')
 
-        return ResNet18(layer_type=layer_type)
+        return ResNet18(layer_type=layer_type, num_classes=1000)
 
     def _build_optimizer(self):
         return optim.SGD(
@@ -50,7 +50,7 @@ class MothTrial(PyTorchTrial):
         self.optimizer.zero_grad()
 
         outputs = self.model(inputs)
-        loss = self.loss_function(outputs, torch.flatten(inputs, start_dim=1))
+        loss = self.loss_function(outputs, labels)
         self.context.backward(loss)
         self.context.step_optimizer(self.optimizer)
 
@@ -63,7 +63,7 @@ class MothTrial(PyTorchTrial):
         inputs, labels = batch
         with torch.no_grad():
             outputs = self.model(inputs)
-            loss = self.loss_function(outputs, torch.flatten(inputs, start_dim=1))
+            loss = self.loss_function(outputs, labels)
 
         # TODO: write images to determined ai
 
@@ -77,15 +77,15 @@ class MothTrial(PyTorchTrial):
             transforms.Normalize(ImageNetDataset.MEAN_VALUES, ImageNetDataset.STD_VALUES)
         ])
 
-        datadir = get_data_dir() / 'train'
+        datadir = get_data_dir() / 'datasets' / 'ImageNet'
 
-        dataset = ImageNetDataset(root=datadir, transform=transform)
+        dataset = ImageNetDataset(root=datadir, transform=transform, train=True)
 
         return DataLoader(
             dataset,
             batch_size=self.context.get_global_batch_size(),
             shuffle=True,
-            num_workers=0,
+            num_workers=6,
         )
 
     def build_validation_data_loader(self) -> DataLoader:
@@ -94,13 +94,13 @@ class MothTrial(PyTorchTrial):
             transforms.Normalize(ImageNetDataset.MEAN_VALUES, ImageNetDataset.STD_VALUES)
         ])
 
-        datadir = get_data_dir() / 'validation'
+        datadir = get_data_dir() / 'datasets' / 'ImageNet'
 
-        dataset = ImageNetDataset(root=datadir, transform=transform)
+        dataset = ImageNetDataset(root=datadir, transform=transform, train=False)
 
         return DataLoader(
             dataset,
             batch_size=self.context.get_global_batch_size(),
             shuffle=True,
-            num_workers=0,
+            num_workers=6,
         )

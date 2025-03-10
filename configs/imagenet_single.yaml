@@ -2,25 +2,15 @@ name: ImageNet::Moth
 description: "Test Conv2dMoth Layer on ImageNet Dataset"
 hyperparameters:
   global_batch_size: 512
-  lr:
-    type: log
-    minval: -5.0
-    maxval: -1.0
-    base: 10
-  weight_decay:
-    type: log
-    minval: -7.0
-    maxval: -2.0
-    base: 10
-  activation_func:
-    type: categorical
-    vals: [normal, moth]
+  lr: 0.01
+  weight_decay: 0.0001
+  activation_func: moth
+  momentum: 0.9
 searcher:
-  name: adaptive_asha
+  name: single
   metric: loss
   max_length:
     epochs: 5
-  max_trials: 500
   smaller_is_better: true
 records_per_epoch: 1281167
 min_validation_period:

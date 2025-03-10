@@ -54,7 +54,7 @@ def show_dataset():
 def calculate_mean_std():
     dataset = ImageNetDataset(
         os.path.expanduser('~/data/datasets/ImageNet/'),
-        train=True,
+        train=False,
         transform=transforms.Compose([
             transforms.Resize((96, 96)),
             transforms.Normalize(ImageNetDataset.MEAN_VALUES, ImageNetDataset.STD_VALUES)

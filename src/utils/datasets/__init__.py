@@ -1,5 +1,6 @@
 import os
 from collections import defaultdict
+from pathlib import Path
 from typing import Tuple
 
 import torch
@@ -40,8 +41,8 @@ def get_image_shapes(ds_name):
     }[ds_name]
 
 
-def get_data_dir():
-    possible = [p for p in POSSIBLE_DATA_DIR_LOCATIONS if os.path.isdir(p)]
+def get_data_dir() -> Path:
+    possible = [Path(p) for p in POSSIBLE_DATA_DIR_LOCATIONS if os.path.isdir(p)]
     if not possible:
         raise ValueError('No datadir could be found.')
     return possible[0]
