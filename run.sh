@@ -1,5 +1,8 @@
 #!/bin/bash
 
+DET_MASTER="http://localhost:4363"
+DET_USER="bschilling"
+
 case "$1" in
 	r|run)
 		shift
@@ -31,7 +34,7 @@ case "$1" in
 		python3 src/test.py "$@"
 		;;
 	d)
-		det -m "$DET_MASTER" -u "$DET_USER" experiment create ./configs/default.yaml ./src
+		det -m "$DET_MASTER" -u "$DET_USER" experiment create ./configs/imagenet.yaml ./src
 		;;
 	j|jupyter)
 		jupyter lab

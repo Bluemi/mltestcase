@@ -1,4 +1,5 @@
 import os
+from collections import defaultdict
 from dataclasses import dataclass
 from pathlib import Path
 from typing import List, Callable, Tuple
@@ -71,9 +72,15 @@ class ImageNetDataset(torch.utils.data.Dataset):
 
     def __getitem__(self, index) -> Tuple[torch.Tensor, Label]:
         entry = self.image_list[index]
-        try:
-            image = torchvision.io.decode_image(entry.image_path)
-        except:
-            print(entry.image_path)
-            raise
+        image = torchvision.io.decode_image(entry.image_path)
         return self.transform(image), entry.label
+
+    def get_example_indices(self, n_per_class: int) -> List[int]:
+        result_indices = []
+        found_per_class = defaultdict(int)
+        for index, index_entry in enumerate(self.image_list):
+            label_index = index_entry.label.index
+            if found_per_class[label_index] < n_per_class:
+                found_per_class[label_index] += 1
+                result_indices.append(index)
+        return result_indices
