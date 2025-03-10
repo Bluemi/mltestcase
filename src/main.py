@@ -2,8 +2,8 @@ import os
 
 import torch
 import torchsummary
-from matplotlib import pyplot as plt
 from torchvision import transforms
+from tqdm import tqdm
 
 from model.layers import Conv2dMoth
 from model.resnet import ResNet18
@@ -24,11 +24,13 @@ def show_model():
 
 
 def show_dataset():
-
     dataset = ImageNetDataset(
         os.path.expanduser('~/data/datasets/ImageNet/'),
         train=True,
-        transform=transforms.Resize((224, 224))
+        transform=transforms.Compose([
+            transforms.Resize((96, 96)),
+            transforms.Normalize([122.7, 116.6, 104.0], [55.1, 54.0, 54.2])
+        ]),
     )
 
     next_label = None
@@ -53,7 +55,10 @@ def calculate_mean_std():
     dataset = ImageNetDataset(
         os.path.expanduser('~/data/datasets/ImageNet/'),
         train=True,
-        transform=transforms.Resize((96, 96))
+        transform=transforms.Compose([
+            transforms.Resize((96, 96)),
+            transforms.Normalize(ImageNetDataset.MEAN_VALUES, ImageNetDataset.STD_VALUES)
+        ]),
     )
 
     mean_sum = torch.zeros(3, dtype=torch.float64)
@@ -65,6 +70,7 @@ def calculate_mean_std():
         data, label = dataset[index]
         data = data.to(torch.float64)
         print(label)
+        describe(data, 'data')
 
         mean_sum += torch.mean(data, dim=(1, 2))
         std_sum += torch.std(data, dim=(1, 2))
@@ -75,5 +81,18 @@ def calculate_mean_std():
     print('std: ', std_sum / counter)
 
 
+def clear_dataset():
+    dataset = ImageNetDataset(
+        os.path.expanduser('~/data/datasets/ImageNet/'),
+        train=True,
+        transform=transforms.Compose([]),
+    )
+
+    for data, label in tqdm(dataset):
+        if data.shape[0] != 3:
+            print(dataset.image_list[label.index].image_path, data.shape)
+
+
 if __name__ == '__main__':
     calculate_mean_std()
+    # clear_dataset()

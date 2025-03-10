@@ -26,6 +26,9 @@ class _IndexEntry:
 
 
 class ImageNetDataset(torch.utils.data.Dataset):
+    MEAN_VALUES = [0.4812, 0.4573, 0.4078]
+    STD_VALUES = [0.2161, 0.2117, 0.2126]
+
     def __init__(self, root: str | Path, transform: Callable, **_kwargs):
         """
         :param root: Path to the root directory of the dataset.
@@ -73,6 +76,9 @@ class ImageNetDataset(torch.utils.data.Dataset):
     def __getitem__(self, index) -> Tuple[torch.Tensor, Label]:
         entry = self.image_list[index]
         image = torchvision.io.decode_image(entry.image_path)
+        if image.shape[0] == 1:
+            image = image.expand(3, *image.shape[1:])
+        image = image.to(torch.float32) / 255.0
         return self.transform(image), entry.label
 
     def get_example_indices(self, n_per_class: int) -> List[int]:
