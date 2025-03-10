@@ -87,7 +87,7 @@ def clear_dataset():
     dataloader = build_dataloader()
 
     for data, label in tqdm(dataloader):
-        pass
+        print(label.shape)
 
 
 def build_dataloader():

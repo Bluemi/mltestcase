@@ -36,6 +36,9 @@ case "$1" in
 	d)
 		det -m "$DET_MASTER" -u "$DET_USER" experiment create ./configs/imagenet_single.yaml ./src
 		;;
+	docker)
+		docker run --rm -it -v /home/alok/data:/data -v "$PWD":/workspace/mltestcase bruno1996/determined-pytorch:0.1 bash
+		;;
 	j|jupyter)
 		jupyter lab
 		;;
