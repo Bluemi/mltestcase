@@ -74,7 +74,7 @@ class MothTrial(PyTorchTrial):
     def build_training_data_loader(self) -> DataLoader:
         transform = transforms.Compose([
             transforms.Resize((96, 96)),
-            # transforms.Normalize(),  # TODO: Normalization values
+            transforms.Normalize(ImageNetDataset.MEAN_VALUES, ImageNetDataset.STD_VALUES)
         ])
 
         datadir = get_data_dir() / 'train'
@@ -90,8 +90,8 @@ class MothTrial(PyTorchTrial):
 
     def build_validation_data_loader(self) -> DataLoader:
         transform = transforms.Compose([
-            transforms.Resize((96, 96))
-            transforms.Normalize(),  # TODO: Normalization values
+            transforms.Resize((96, 96)),
+            transforms.Normalize(ImageNetDataset.MEAN_VALUES, ImageNetDataset.STD_VALUES)
         ])
 
         datadir = get_data_dir() / 'validation'
