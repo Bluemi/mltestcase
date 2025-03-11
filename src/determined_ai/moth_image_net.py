@@ -4,7 +4,7 @@ import torch
 from torch import optim, nn, Tensor
 from determined.pytorch import PyTorchTrial, PyTorchTrialContext, TorchData, DataLoader
 from torchvision import transforms
-import torchmetrics
+from torchmetrics.classification import MulticlassAccuracy
 
 from model.layers import Conv2dMoth
 from model.resnet import ResNet18
@@ -24,8 +24,8 @@ class MothTrial(PyTorchTrial):
         # loss function
         self.loss_function = nn.CrossEntropyLoss()
 
-        self.top5_accuracy = torchmetrics.classification.MulticlassAccuracy(num_classes=1000, top_k=5)
-        self.top1_accuracy = torchmetrics.classification.MulticlassAccuracy(num_classes=1000, top_k=1)
+        self.top5_accuracy = MulticlassAccuracy(num_classes=1000, top_k=5).to(self.context.device)
+        self.top1_accuracy = MulticlassAccuracy(num_classes=1000, top_k=1).to(self.context.device)
 
     def _build_model(self):
         activation_func = self.context.get_hparam('activation_func')
