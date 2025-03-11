@@ -83,7 +83,7 @@ class MothLayer(nn.Module):
 
         # b = torch.abs(x - y) * (inter_fac + 0.5)
         # def _q(w):
-            # return torch.minimum(torch.exp(w)-1, torch.maximum(w, torch.tensor(0.0)))
+        # return torch.minimum(torch.exp(w)-1, torch.maximum(w, torch.tensor(0.0)))
         def _v(w):
             s = torch.sigmoid(w)
             return w * s - w * (1-s)
@@ -142,3 +142,10 @@ class MothReLU2d(nn.Module):
         functional.relu(x[:, abs_channels:], inplace=True)
         return x
 
+
+class CreateMothReLU2d:
+    def __init__(self, abs_channels: int | float):
+        self.abs_channels = abs_channels
+
+    def __call__(self):
+        return MothReLU2d(self.abs_channels)

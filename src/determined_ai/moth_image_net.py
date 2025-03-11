@@ -6,7 +6,7 @@ from determined.pytorch import PyTorchTrial, PyTorchTrialContext, TorchData, Dat
 from torchvision import transforms
 from torchmetrics.classification import MulticlassAccuracy
 
-from model.layers import Conv2dMoth, MothReLU2d
+from model.layers import CreateMothReLU2d
 from model.resnet import ResNet18
 from utils.datasets import get_data_dir, ImageNetDataset
 
@@ -35,7 +35,7 @@ class MothTrial(PyTorchTrial):
                 activation_type = nn.ReLU
             case 'moth':
                 layer_type = nn.Conv2d
-                activation_type = MothReLU2d
+                activation_type = CreateMothReLU2d(0.2)
             case _:
                 raise ValueError(f'Unknown activation function: {activation_func}')
 
