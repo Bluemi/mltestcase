@@ -97,6 +97,7 @@ class MothTrial(PyTorchTrial):
             batch_size=self.context.get_global_batch_size(),
             shuffle=True,
             num_workers=8,
+            pin_memory=True,
         )
 
     def build_validation_data_loader(self) -> DataLoader:
@@ -114,4 +115,5 @@ class MothTrial(PyTorchTrial):
             batch_size=self.context.get_global_batch_size(),
             shuffle=False,
             num_workers=8,
+            pin_memory=True,
         )
