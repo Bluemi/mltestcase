@@ -78,14 +78,24 @@ class ImageNetDataset(torch.utils.data.Dataset):
 
     def __getitem__(self, index) -> Tuple[torch.Tensor, Label]:
         entry = self.image_list[index]
-        image = torchvision.io.read_image(str(entry.image_path))
+
+        # image
+        image = torchvision.io.read_image(str(entry.image_path), mode=torchvision.io.ImageReadMode.RGB)
         if image.shape[0] == 1:
             image = image.expand(3, *image.shape[1:])
+        if image.shape[0] != 3:
+            raise ValueError(f"Expected 3 channels, but got {image.shape[0]} for image {entry.image_path}")
+        if image.dtype != torch.uint8:
+            raise TypeError(f"Expected uint8 dtype, but got {image.dtype} for image {entry.image_path}")
         image = image.to(torch.float32) / 255.0
+        image = self.transform(image)
+
+        # label
         label = entry.label
         if not self.full_labels:
             label = label.index
-        return self.transform(image), label
+
+        return image, label
 
     def get_example_indices(self, n_per_class: int) -> List[int]:
         result_indices = []

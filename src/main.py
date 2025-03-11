@@ -84,13 +84,17 @@ def calculate_mean_std():
 
 
 def clear_dataset():
-    dataloader = build_dataloader()
+    dataloader = build_dataloader(True)
 
-    for data, label in tqdm(dataloader):
-        print(label.shape)
+    for image, label in tqdm(dataloader, desc='testing train dataset'):
+        pass
+
+    dataloader = build_dataloader(False)
+    for image, label in tqdm(dataloader, desc='testing val dataset'):
+        pass
 
 
-def build_dataloader():
+def build_dataloader(train=True):
     transform = transforms.Compose([
         transforms.Resize((96, 96)),
         transforms.Normalize(ImageNetDataset.MEAN_VALUES, ImageNetDataset.STD_VALUES)
@@ -98,7 +102,7 @@ def build_dataloader():
 
     datadir = Path(os.path.expanduser('~/data/datasets/ImageNet/'))
 
-    dataset = ImageNetDataset(root=datadir, transform=transform, train=False)
+    dataset = ImageNetDataset(root=datadir, transform=transform, train=train)
 
     return DataLoader(
         dataset,
