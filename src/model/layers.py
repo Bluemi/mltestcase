@@ -138,8 +138,9 @@ class MothReLU2d(nn.Module):
             abs_channels = int(self.abs_channels * c)
         else:
             abs_channels = self.abs_channels
-        torch.abs(x[:, :abs_channels], out=x[:, :abs_channels])
-        functional.relu(x[:, abs_channels:], inplace=True)
+        abs_data = torch.abs(x[:, :abs_channels])
+        relu_data = functional.relu(x[:, abs_channels:])
+        x = torch.cat([abs_data, relu_data], dim=1)
         return x
 
 
