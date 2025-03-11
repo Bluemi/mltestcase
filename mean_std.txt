@@ -1,3 +1,0 @@
-
-mean:  tensor([122.6941, 116.6152, 103.9927], dtype=torch.float64)
-std:  tensor([55.1081, 53.9967, 54.2141], dtype=torch.float64)
