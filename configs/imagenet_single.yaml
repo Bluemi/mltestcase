@@ -4,7 +4,7 @@ hyperparameters:
   global_batch_size: 512
   lr: 0.01
   weight_decay: 0.0001
-  activation_func: normal
+  activation_func: moth
   momentum: 0.9
 searcher:
   name: single

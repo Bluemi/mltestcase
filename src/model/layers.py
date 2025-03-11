@@ -1,6 +1,7 @@
 import numpy as np
 import torch
 from torch import nn as nn
+from torch.nn import functional as functional
 
 
 class CustomLinearLayer(nn.Module):
@@ -124,3 +125,20 @@ class Conv2dMoth(nn.Module):
             )
             x[:, :self.moth_channels, self.moth_stride:-self.moth_stride, :] += d
         return x
+
+
+class MothReLU2d(nn.Module):
+    def __init__(self, abs_channels: int | float):
+        super().__init__()
+        self.abs_channels = abs_channels
+
+    def forward(self, x: torch.Tensor):
+        n, c, h, w = x.shape
+        if isinstance(self.abs_channels, float):
+            abs_channels = int(self.abs_channels * c)
+        else:
+            abs_channels = self.abs_channels
+        torch.abs(x[:, :abs_channels], out=x[:, :abs_channels])
+        functional.relu(x[:, abs_channels:], inplace=True)
+        return x
+
