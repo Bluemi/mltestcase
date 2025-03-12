@@ -8,6 +8,10 @@ case "$1" in
 		shift
 		python3 src/main.py "$@"
 		;;
+	td)
+		shift;
+		PYTHONPATH="$PWD/src" python3 src/scripts/transform_dataset.py "$@"
+		;;
 	t|train)
 		shift;
 		python3 src/train.py "$@"
