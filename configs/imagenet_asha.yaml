@@ -1,0 +1,49 @@
+name: ImageNet::Moth
+description: "SuppressionLayer v2"
+hyperparameters:
+  global_batch_size: 512
+  lr:
+    type: log
+    minval: -5
+    maxval: -3
+    base: 10
+  weight_decay:
+    type: log
+    minval: -5
+    maxval: -4
+    base: 10
+  activation_func:
+    type: categorical
+    vals: [normal]
+  momentum: 0.9
+  use_suppression:
+    type: categorical
+    vals: [true]
+searcher:
+  name: adaptive_asha
+  metric: accuracy_top5
+  time_metric: epochs
+  max_time: 8
+  smaller_is_better: false
+  max_trials: 40
+  max_length:
+    epochs: 8
+records_per_epoch: 1281167
+min_validation_period:
+  batches: 1000
+workspace: "ML-Testcase"
+project: SuppressionLayer
+entrypoint: determined_ai.moth_image_net:MothTrial
+environment:
+  image:
+    cpu: "determinedai/environments:cuda-11.3-pytorch-1.12-tf-2.11-gpu-0.26.4"
+    cuda: "bruno1996/determined-pytorch:0.1"
+bind_mounts:
+  - host_path: "/home/alok/data"
+    container_path: "/data"
+    read_only: true
+checkpoint_storage:
+  save_trial_best: 0
+  save_trial_latest: 0
+  save_experiment_best: 0
+max_restarts: 0

@@ -38,7 +38,7 @@ case "$1" in
 		python3 src/test.py "$@"
 		;;
 	d)
-		det -m "$DET_MASTER" -u "$DET_USER" experiment create ./configs/imagenet_single.yaml ./src
+		det -m "$DET_MASTER" -u "$DET_USER" experiment create ./configs/imagenet_asha.yaml ./src
 		;;
 	docker)
 		docker run --rm -it -v /home/alok/data:/data -v "$PWD":/workspace/mltestcase bruno1996/determined-pytorch:0.1 bash
