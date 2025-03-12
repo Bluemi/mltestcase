@@ -4,6 +4,7 @@ from pathlib import Path
 import torch
 import torchsummary
 from determined.pytorch import DataLoader
+from torch import nn
 from torchvision import transforms
 from tqdm import tqdm
 
@@ -20,7 +21,7 @@ NUM_SAMPLES_PER_CLASS = 100
 
 def show_model():
     device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
-    model = ResNet18(layer_type=Conv2dMoth)
+    model = ResNet18(use_suppression=True, layer_type=nn.Conv2d)
     model.to(device)
     torchsummary.summary(model, (3, 96, 96))
 
@@ -113,5 +114,6 @@ def build_dataloader(train=True):
 
 
 if __name__ == '__main__':
+    show_model()
     # calculate_mean_std()
-    clear_dataset()
+    # clear_dataset()

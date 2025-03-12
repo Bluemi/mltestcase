@@ -144,9 +144,21 @@ class MothReLU2d(nn.Module):
         return x
 
 
-class CreateMothReLU2d:
-    def __init__(self, abs_channels: int | float):
-        self.abs_channels = abs_channels
+class SuppressionLayer(nn.Module):
+    def __init__(self, in_channels: int, kernel_size: int = 1, stride: int = 1, padding: int = 0):
+        super().__init__()
+        self.conv = nn.Conv2d(in_channels, 1, kernel_size=kernel_size, padding=padding)
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        mask = functional.sigmoid(self.conv(x))
+        x = x * mask
+        return x
+
+
+class ParameterizedLayer:
+    def __init__(self, layer_type, **kwargs):
+        self.layer_type = layer_type
+        self.args = kwargs
 
     def __call__(self):
-        return MothReLU2d(self.abs_channels)
+        return self.layer_type(**self.args)

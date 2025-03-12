@@ -6,7 +6,7 @@ from determined.pytorch import PyTorchTrial, PyTorchTrialContext, TorchData, Dat
 from torchvision import transforms
 from torchmetrics.classification import MulticlassAccuracy
 
-from model.layers import CreateMothReLU2d
+from model.layers import ParameterizedLayer, MothReLU2d
 from model.resnet import ResNet18
 from utils.datasets import get_data_dir, ImageNetDataset
 
@@ -35,11 +35,18 @@ class MothTrial(PyTorchTrial):
                 activation_type = nn.ReLU
             case 'moth':
                 layer_type = nn.Conv2d
-                activation_type = CreateMothReLU2d(0.2)
+                activation_type = ParameterizedLayer(MothReLU2d, abs_channels=0.2)
             case _:
                 raise ValueError(f'Unknown activation function: {activation_func}')
 
-        return ResNet18(num_classes=1000, layer_type=layer_type, activation_type=activation_type)
+        use_suppression = self.context.get_hparam('use_suppression')
+
+        return ResNet18(
+            num_classes=1000,
+            layer_type=layer_type,
+            activation_type=activation_type,
+            use_suppression=use_suppression
+        )
 
     def _build_optimizer(self):
         return optim.SGD(
@@ -97,6 +104,7 @@ class MothTrial(PyTorchTrial):
             batch_size=self.context.get_global_batch_size(),
             shuffle=True,
             num_workers=8,
+            pin_memory=True,
         )
 
     def build_validation_data_loader(self) -> DataLoader:
@@ -114,4 +122,5 @@ class MothTrial(PyTorchTrial):
             batch_size=self.context.get_global_batch_size(),
             shuffle=False,
             num_workers=8,
+            pin_memory=True,
         )
