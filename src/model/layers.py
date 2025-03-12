@@ -147,7 +147,7 @@ class MothReLU2d(nn.Module):
 class SuppressionLayer(nn.Module):
     def __init__(self, in_channels: int, kernel_size: int = 1, stride: int = 1, padding: int = 0):
         super().__init__()
-        self.conv = nn.Conv2d(in_channels, 1, kernel_size=kernel_size, padding=padding)
+        self.conv = nn.Conv2d(in_channels, 1, kernel_size=kernel_size, stride=stride, padding=padding)
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         mask = functional.sigmoid(self.conv(x))
