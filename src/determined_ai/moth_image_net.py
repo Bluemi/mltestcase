@@ -81,8 +81,6 @@ class MothTrial(PyTorchTrial):
             top1_accuracy = self.top1_accuracy(outputs, labels)
             top5_accuracy = self.top5_accuracy(outputs, labels)
 
-        # TODO: write images to determined ai
-
         return {
             'loss': loss,
             'accuracy_top1': top1_accuracy,
@@ -91,11 +89,11 @@ class MothTrial(PyTorchTrial):
 
     def build_training_data_loader(self) -> DataLoader:
         transform = transforms.Compose([
-            transforms.Resize((96, 96)),
+            # transforms.Resize((96, 96)),
             transforms.Normalize(ImageNetDataset.MEAN_VALUES, ImageNetDataset.STD_VALUES)
         ])
 
-        datadir = get_data_dir() / 'datasets' / 'ImageNet'
+        datadir = get_data_dir() / 'datasets' / 'ImageNet_96'
 
         dataset = ImageNetDataset(root=datadir, transform=transform, train=True)
 
@@ -109,11 +107,11 @@ class MothTrial(PyTorchTrial):
 
     def build_validation_data_loader(self) -> DataLoader:
         transform = transforms.Compose([
-            transforms.Resize((96, 96)),
+            # transforms.Resize((96, 96)),
             transforms.Normalize(ImageNetDataset.MEAN_VALUES, ImageNetDataset.STD_VALUES)
         ])
 
-        datadir = get_data_dir() / 'datasets' / 'ImageNet'
+        datadir = get_data_dir() / 'datasets' / 'ImageNet_96'
 
         dataset = ImageNetDataset(root=datadir, transform=transform, train=False)
 
