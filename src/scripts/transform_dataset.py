@@ -13,9 +13,7 @@ def main():
     dataset = ImageNetDataset(
         os.path.expanduser('~/data/datasets/ImageNet/'),
         train=True,
-        transform=transforms.Compose([
-            transforms.Resize((96, 96)),
-        ]),
+        transform=transforms.Compose([]),
     )
 
     new_image_size = 96
@@ -23,7 +21,8 @@ def main():
     for entry in tqdm(dataset.image_list, desc='scale ImageNet'):
         input_path = Path(entry.image_path)
         output_path = Path(str(entry.image_path).replace("/ImageNet/", f"/ImageNet_{new_image_size}/", 1))
-        resize_and_save_image(input_path, output_path, (new_image_size, new_image_size))
+        if not output_path.exists():
+            resize_and_save_image(input_path, output_path, (new_image_size, new_image_size))
 
 
 def resize_and_save_image(input_path: Path, output_path: Path, size: Tuple[int, int]):
