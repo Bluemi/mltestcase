@@ -144,9 +144,10 @@ class MothReLU2d(nn.Module):
         return x
 
 
-class CreateMothReLU2d:
-    def __init__(self, abs_channels: int | float):
-        self.abs_channels = abs_channels
+class ParameterizedLayer:
+    def __init__(self, layer_type, **kwargs):
+        self.layer_type = layer_type
+        self.args = kwargs
 
     def __call__(self):
-        return MothReLU2d(self.abs_channels)
+        return self.layer_type(**self.args)
