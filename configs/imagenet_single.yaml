@@ -1,5 +1,5 @@
 name: ImageNet::Moth
-description: "Test Conv2dMoth Layer on ImageNet Dataset"
+description: "SuppressionLayer v2"
 hyperparameters:
   global_batch_size: 512
   lr: 0.01

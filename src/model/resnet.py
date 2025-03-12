@@ -48,7 +48,7 @@ class ResNet(nn.Module):
         for i, b in enumerate(arch):
             self.net.add_module(
                 f'b{i + 2}',
-                self.block(*b, use_suppression=use_suppression, first_block=(i == 0), layer_type=layer_type)
+                self.block(i, *b, use_suppression=use_suppression, first_block=(i == 0), layer_type=layer_type)
             )
         self.net.add_module('last', nn.Sequential(
             nn.AdaptiveAvgPool2d((1, 1)), nn.Flatten(),
@@ -67,10 +67,11 @@ class ResNet(nn.Module):
 
     @staticmethod
     def block(
-            num_residuals, prev_num_channels, num_channels, first_block: bool = False, layer_type=nn.Conv2d,
-            activation_type=nn.ReLU, use_suppression: bool = False
+            block_index: int, num_residuals, prev_num_channels, num_channels, first_block: bool = False,
+            layer_type=nn.Conv2d, activation_type=nn.ReLU, use_suppression: bool = False
     ):
         blk = []
+        use_suppression = block_index < 3 and use_suppression
         for i in range(num_residuals):
             if i == 0 and not first_block:
                 blk.append(
