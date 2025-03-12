@@ -39,7 +39,14 @@ class MothTrial(PyTorchTrial):
             case _:
                 raise ValueError(f'Unknown activation function: {activation_func}')
 
-        return ResNet18(num_classes=1000, layer_type=layer_type, activation_type=activation_type)
+        use_suppression = self.context.get_hparam('use_suppression')
+
+        return ResNet18(
+            num_classes=1000,
+            layer_type=layer_type,
+            activation_type=activation_type,
+            use_suppression=use_suppression
+        )
 
     def _build_optimizer(self):
         return optim.SGD(
