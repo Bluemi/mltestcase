@@ -18,10 +18,12 @@ def main():
         ]),
     )
 
+    new_image_size = 96
+
     for entry in tqdm(dataset.image_list, desc='scale ImageNet'):
         input_path = Path(entry.image_path)
-        output_path = Path(str(entry.image_path).replace("/ImageNet/", "/ImageNet_96/", 1))
-        resize_and_save_image(input_path, output_path, (96, 96))
+        output_path = Path(str(entry.image_path).replace("/ImageNet/", f"/ImageNet_{new_image_size}/", 1))
+        resize_and_save_image(input_path, output_path, (new_image_size, new_image_size))
 
 
 def resize_and_save_image(input_path: Path, output_path: Path, size: Tuple[int, int]):
