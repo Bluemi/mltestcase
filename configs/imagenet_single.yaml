@@ -1,17 +1,17 @@
 name: ImageNet::Moth
-description: "SuppressionLayer v2"
+description: "No SuppressionLayer v2"
 hyperparameters:
   global_batch_size: 512
   lr: 0.01
   weight_decay: 0.0001
   activation_func: normal
   momentum: 0.9
-  use_suppression: true
+  use_suppression: false
 searcher:
   name: single
   metric: loss
   max_length:
-    epochs: 5
+    epochs: 11
   smaller_is_better: true
 records_per_epoch: 1281167
 min_validation_period:

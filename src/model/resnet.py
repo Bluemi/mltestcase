@@ -26,7 +26,7 @@ class Residual(nn.Module):
         self.bn2 = nn.LazyBatchNorm2d()
 
         if use_suppression:
-            self.suppression = SuppressionLayer(out_channels)
+            self.suppression = SuppressionLayer(out_channels, kernel_size=5, padding=2)
         else:
             self.suppression = None
 
