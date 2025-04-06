@@ -1,9 +1,9 @@
 name: ImageNet::Moth
-description: "No SuppressionLayer v2"
+description: "SuppressionLayer v3 - no weight decay"
 hyperparameters:
   global_batch_size: 512
   lr: 0.01
-  weight_decay: 0.0001
+  weight_decay: 0.0000
   activation_func: normal
   momentum: 0.9
   use_suppression: true
