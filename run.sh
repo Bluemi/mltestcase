@@ -6,7 +6,7 @@ DET_USER="bschilling"
 case "$1" in
 	r|run)
 		shift
-		python3 src/main.py "$@"
+		PYTHONPATH="$PWD/src" python3 src/scripts/main.py "$@"
 		;;
 	td)
 		shift;
@@ -23,7 +23,7 @@ case "$1" in
 		;;
 	im|inspect)
 		shift;
-		python3 src/inspect_model.py "$@"
+		PYTHONPATH="$PWD/src" python3 src/scripts/inspect_model.py "$@"
 		;;
 	vis)
 		shift

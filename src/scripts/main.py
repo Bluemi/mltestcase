@@ -23,7 +23,12 @@ def show_model():
     device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
     model = ResNet18(use_suppression=True, layer_type=nn.Conv2d)
     model.to(device)
-    torchsummary.summary(model, (3, 96, 96))
+
+    input_data = torch.randn(1, 3, 96, 96).to(device)
+    output_data = model(input_data)
+    print('output shape:', output_data.shape)
+
+    # torchsummary.summary(model, (3, 96, 96))
 
 
 def show_dataset():

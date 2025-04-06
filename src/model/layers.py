@@ -145,11 +145,19 @@ class MothReLU2d(nn.Module):
 
 
 class SuppressionLayer(nn.Module):
-    def __init__(self, in_channels: int, kernel_size: int = 1, stride: int = 1, padding: int = 0):
+    def __init__(self, in_channels: int, input_size: np.ndarray, kernel_size: int = 1, stride: int = 1, padding: int = 0):
         super().__init__()
         self.conv = nn.Conv2d(in_channels, 1, kernel_size=kernel_size, stride=stride, padding=padding)
+        self.input_size = input_size
+        self.in_channels = in_channels
+        # self.linear = nn.LazyLinear()
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
+        """
+
+        :param x: Input tensor with shape [b, c, h, w].
+        :return:
+        """
         mask = functional.sigmoid(self.conv(x))
         x = x * mask
         return x
@@ -162,3 +170,13 @@ class ParameterizedLayer:
 
     def __call__(self):
         return self.layer_type(**self.args)
+
+
+class StatusLayer(nn.Module):
+    def __init__(self, message: str = ''):
+        super().__init__()
+        self.message = message
+
+    def forward(self, x):
+        print(self.message, x.shape)
+        return x
