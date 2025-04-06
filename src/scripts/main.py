@@ -21,10 +21,11 @@ NUM_SAMPLES_PER_CLASS = 100
 
 def show_model():
     device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
-    model = ResNet18(use_suppression=True, layer_type=nn.Conv2d)
+    input_size = (96, 96)
+    model = ResNet18(input_size, use_suppression=True, layer_type=nn.Conv2d)
     model.to(device)
 
-    input_data = torch.randn(1, 3, 96, 96).to(device)
+    input_data = torch.randn(1, 3, *input_size).to(device)
     output_data = model(input_data)
     print('output shape:', output_data.shape)
 

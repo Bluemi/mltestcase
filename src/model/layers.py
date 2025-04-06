@@ -1,3 +1,5 @@
+from typing import Tuple
+
 import numpy as np
 import torch
 from torch import nn as nn
@@ -146,8 +148,8 @@ class MothReLU2d(nn.Module):
 
 class SuppressionLayer(nn.Module):
     def __init__(
-            self, in_channels: int, input_size: np.ndarray, kernel_size: int = 1, stride: int = 1, padding: int = 0,
-            reduction_features: int = 1
+            self, in_channels: int, input_size: Tuple[int, int], kernel_size: int = 1, stride: int = 1,
+            padding: int = 0, reduction_features: int = 1
     ):
         super().__init__()
         self.reduction_features = reduction_features
@@ -164,10 +166,11 @@ class SuppressionLayer(nn.Module):
         :param x: Input tensor with shape [b, c, h, w].
         :return:
         """
+        print('SuppressionLayer: ', x.shape, ' | ', self.in_channels, self.input_size)
         batch_size = x.shape[0]
         mask = functional.sigmoid(self.conv(x))
         mask = mask.reshape(batch_size, self.num_features * self.reduction_features)
-        mask = self.linear(mask)
+        mask = functional.sigmoid(self.linear(mask))
         mask = mask.reshape(batch_size, 1, *self.input_size)
 
         x = x * mask
