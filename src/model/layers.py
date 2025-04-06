@@ -145,12 +145,18 @@ class MothReLU2d(nn.Module):
 
 
 class SuppressionLayer(nn.Module):
-    def __init__(self, in_channels: int, input_size: np.ndarray, kernel_size: int = 1, stride: int = 1, padding: int = 0):
+    def __init__(
+            self, in_channels: int, input_size: np.ndarray, kernel_size: int = 1, stride: int = 1, padding: int = 0,
+            reduction_features: int = 1
+    ):
         super().__init__()
-        self.conv = nn.Conv2d(in_channels, 1, kernel_size=kernel_size, stride=stride, padding=padding)
+        self.reduction_features = reduction_features
         self.input_size = input_size
         self.in_channels = in_channels
-        # self.linear = nn.LazyLinear()
+        self.num_features = int(np.prod(input_size))
+
+        self.conv = nn.Conv2d(in_channels, reduction_features, kernel_size=kernel_size, stride=stride, padding=padding)
+        self.linear = nn.Linear(self.num_features * self.reduction_features, self.num_features)
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         """
@@ -158,7 +164,12 @@ class SuppressionLayer(nn.Module):
         :param x: Input tensor with shape [b, c, h, w].
         :return:
         """
+        batch_size = x.shape[0]
         mask = functional.sigmoid(self.conv(x))
+        mask = mask.reshape(batch_size, self.num_features * self.reduction_features)
+        mask = self.linear(mask)
+        mask = mask.reshape(batch_size, 1, *self.input_size)
+
         x = x * mask
         return x
 
