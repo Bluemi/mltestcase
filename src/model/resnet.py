@@ -2,32 +2,11 @@
 Taken from https://d2l.ai/chapter_convolutional-modern/resnet.html
 """
 from dataclasses import dataclass
-from typing import List, Union, Tuple
+from typing import List, Tuple
 
 from torch import nn
 
-from model.layers import SuppressionLayer
-
-
-def conv2d_output_shape(input_size: Union[int, Tuple[int, int]], kernel_size, stride=1, padding=0, dilation=1):
-    """
-    input_size: numpy array or list/tuple of shape (H, W)
-    kernel_size, stride, padding, dilation: int or tuple
-    Returns: tuple (h_out, w_out)
-    """
-    def _pair(x):
-        return (x, x) if isinstance(x, int) else x
-
-    h_in, w_in = input_size
-    k_h, k_w = _pair(kernel_size)
-    s_h, s_w = _pair(stride)
-    p_h, p_w = _pair(padding)
-    d_h, d_w = _pair(dilation)
-
-    h_out = (h_in + 2 * p_h - d_h * (k_h - 1) - 1) // s_h + 1
-    w_out = (w_in + 2 * p_w - d_w * (k_w - 1) - 1) // s_w + 1
-
-    return h_out, w_out
+from model.layers import SuppressionLayer, conv2d_output_shape
 
 
 class Residual(nn.Module):
@@ -55,7 +34,9 @@ class Residual(nn.Module):
 
         self.suppression_input_size = suppression_input_size
         if use_suppression:
-            self.suppression = SuppressionLayer(out_channels, suppression_input_size, kernel_size=5, padding=2)
+            self.suppression = SuppressionLayer(
+                out_channels, suppression_input_size, reduction_features=4, kernel_size=4, padding=0, stride=4
+            )
         else:
             self.suppression = None
 

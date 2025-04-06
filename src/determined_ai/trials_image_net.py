@@ -42,6 +42,7 @@ class MothTrial(PyTorchTrial):
         use_suppression = self.context.get_hparam('use_suppression')
 
         return ResNet18(
+            input_size=(96, 96),
             num_classes=1000,
             layer_type=layer_type,
             activation_type=activation_type,

@@ -1,9 +1,30 @@
-from typing import Tuple
+from typing import Tuple, Union
 
 import numpy as np
 import torch
 from torch import nn as nn
 from torch.nn import functional as functional
+
+
+def conv2d_output_shape(input_size: Union[int, Tuple[int, int]], kernel_size, stride=1, padding=0, dilation=1):
+    """
+    input_size: numpy array or list/tuple of shape (H, W)
+    kernel_size, stride, padding, dilation: int or tuple
+    Returns: tuple (h_out, w_out)
+    """
+    def _pair(x):
+        return (x, x) if isinstance(x, int) else x
+
+    h_in, w_in = input_size
+    k_h, k_w = _pair(kernel_size)
+    s_h, s_w = _pair(stride)
+    p_h, p_w = _pair(padding)
+    d_h, d_w = _pair(dilation)
+
+    h_out = (h_in + 2 * p_h - d_h * (k_h - 1) - 1) // s_h + 1
+    w_out = (w_in + 2 * p_w - d_w * (k_w - 1) - 1) // s_w + 1
+
+    return h_out, w_out
 
 
 class CustomLinearLayer(nn.Module):
@@ -154,11 +175,15 @@ class SuppressionLayer(nn.Module):
         super().__init__()
         self.reduction_features = reduction_features
         self.input_size = input_size
+        self.num_output_features = int(np.prod(input_size))
         self.in_channels = in_channels
-        self.num_features = int(np.prod(input_size))
+        self.linear_input_size = conv2d_output_shape(
+            input_size, kernel_size=kernel_size, stride=stride, padding=padding
+        )
+        self.linear_num_input_features = int(np.prod(self.linear_input_size)) * self.reduction_features
 
         self.conv = nn.Conv2d(in_channels, reduction_features, kernel_size=kernel_size, stride=stride, padding=padding)
-        self.linear = nn.Linear(self.num_features * self.reduction_features, self.num_features)
+        self.linear = nn.Linear(self.linear_num_input_features, self.num_output_features)
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         """
@@ -166,10 +191,9 @@ class SuppressionLayer(nn.Module):
         :param x: Input tensor with shape [b, c, h, w].
         :return:
         """
-        print('SuppressionLayer: ', x.shape, ' | ', self.in_channels, self.input_size)
         batch_size = x.shape[0]
         mask = functional.sigmoid(self.conv(x))
-        mask = mask.reshape(batch_size, self.num_features * self.reduction_features)
+        mask = mask.reshape(batch_size, self.linear_num_input_features)
         mask = functional.sigmoid(self.linear(mask))
         mask = mask.reshape(batch_size, 1, *self.input_size)
 
